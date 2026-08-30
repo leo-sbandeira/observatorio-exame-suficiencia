@@ -85,7 +85,7 @@ export default function PaginaIES() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Desempenho por IES</h1>
+        <h1 className="text-2xl font-bold">Dados por Instituição</h1>
         <p className="text-sm text-slate-500">
           Busque, filtre e ordene os resultados por instituição de ensino.
         </p>

@@ -15,9 +15,13 @@ import {
 } from "recharts";
 import MultiSelect from "@/components/MultiSelect";
 import type { RegistroGeral } from "@/lib/types";
+import { GRANDE_REGIAO_POR_UF, GRANDES_REGIOES } from "@/lib/regioes";
 
 const CORES = ["#0f172a", "#dc2626", "#2563eb", "#16a34a", "#9333ea", "#ea580c"];
 
+function nomeRegiao(r: string) {
+  return r === "BR" ? "Brasil" : r;
+}
 function formatPct(v: number | null | undefined, casas = 1) {
   if (v === null || v === undefined) return "—";
   return (
@@ -76,6 +80,8 @@ interface LinhaTabela {
   deltaPresentes: number | null;
   aprovados: number | null;
   deltaAprovados: number | null;
+  reprovados: number | null;
+  deltaReprovados: number | null;
   ausentes: number | null;
   deltaAusentes: number | null;
 }
@@ -98,6 +104,52 @@ export default function Home() {
       .finally(() => setCarregando(false));
   }, []);
 
+  // Agrega os estados em suas 5 grandes regiões geográficas (Norte,
+  // Nordeste, Centro-Oeste, Sudeste, Sul), somando os valores absolutos e
+  // recalculando os percentuais sobre a soma.
+  const dadosCompletos = useMemo(() => {
+    const somaPorEdicaoRegiao = new Map<
+      string,
+      { inscritos: number; presentes: number; aprovados: number; reprovados: number; ausentes: number }
+    >();
+    for (const d of dados) {
+      const grande = GRANDE_REGIAO_POR_UF[d.regiao];
+      if (!grande) continue;
+      const chave = `${d.edicao}|${grande}`;
+      const atual = somaPorEdicaoRegiao.get(chave) ?? {
+        inscritos: 0,
+        presentes: 0,
+        aprovados: 0,
+        reprovados: 0,
+        ausentes: 0,
+      };
+      atual.inscritos += d.inscritos ?? 0;
+      atual.presentes += d.presentes ?? 0;
+      atual.aprovados += d.aprovados ?? 0;
+      atual.reprovados += d.reprovados ?? 0;
+      atual.ausentes += d.ausentes ?? 0;
+      somaPorEdicaoRegiao.set(chave, atual);
+    }
+    const agregados: RegistroGeral[] = Array.from(somaPorEdicaoRegiao.entries()).map(
+      ([chave, v]) => {
+        const [edicao, regiao] = chave.split("|");
+        return {
+          edicao,
+          regiao,
+          inscritos: v.inscritos,
+          presentes: v.presentes,
+          aprovados: v.aprovados,
+          pctAprovados: v.presentes ? v.aprovados / v.presentes : null,
+          reprovados: v.reprovados,
+          pctReprovados: v.presentes ? v.reprovados / v.presentes : null,
+          ausentes: v.ausentes,
+          pctAusentes: v.inscritos ? v.ausentes / v.inscritos : null,
+        };
+      }
+    );
+    return [...dados, ...agregados];
+  }, [dados]);
+
   const ufsDisponiveis = useMemo(
     () =>
       Array.from(
@@ -114,6 +166,7 @@ export default function Home() {
   const opcoesRegiao = useMemo(
     () => [
       { value: "BR", label: "Brasil" },
+      ...GRANDES_REGIOES.map((r) => ({ value: r, label: r })),
       ...ufsDisponiveis.map((uf) => ({ value: uf, label: uf })),
     ],
     [ufsDisponiveis]
@@ -123,23 +176,20 @@ export default function Home() {
     [edicoesDisponiveis]
   );
 
-  // Série cronológica completa por região (necessária para calcular a
-  // variação em relação à edição imediatamente anterior mesmo quando o
-  // filtro de edições não inclui essa edição anterior).
   const seriePorRegiao = useMemo(() => {
     const mapa = new Map<string, RegistroGeral[]>();
-    for (const d of dados) {
+    for (const d of dadosCompletos) {
       const arr = mapa.get(d.regiao) ?? [];
       arr.push(d);
       mapa.set(d.regiao, arr);
     }
     for (const arr of mapa.values()) arr.sort((a, b) => a.edicao.localeCompare(b.edicao));
     return mapa;
-  }, [dados]);
+  }, [dadosCompletos]);
 
   const regioesParaExibir = regioesFiltro.length
     ? regioesFiltro
-    : ["BR", ...ufsDisponiveis];
+    : ["BR", ...GRANDES_REGIOES, ...ufsDisponiveis];
 
   const linhasTabela: LinhaTabela[] = useMemo(() => {
     const linhas: LinhaTabela[] = [];
@@ -157,6 +207,8 @@ export default function Home() {
           deltaPresentes: variacao(atual.presentes, anterior?.presentes),
           aprovados: atual.aprovados,
           deltaAprovados: variacao(atual.aprovados, anterior?.aprovados),
+          reprovados: atual.reprovados,
+          deltaReprovados: variacao(atual.reprovados, anterior?.reprovados),
           ausentes: atual.ausentes,
           deltaAusentes: variacao(atual.ausentes, anterior?.ausentes),
         });
@@ -164,8 +216,6 @@ export default function Home() {
     }
     return linhas;
   }, [regioesParaExibir, seriePorRegiao, edicoesFiltro]);
-
-  const mostrarColunaRegiao = regioesParaExibir.length > 1;
 
   // --- Gráfico de evolução ---
   const nacional = useMemo(
@@ -182,23 +232,21 @@ export default function Home() {
     return edicoesDisponiveis.map((ed) => {
       const linha: Record<string, string | number | null> = { edicao: ed };
       for (const regiao of regioesNoGrafico) {
-        const item = dados.find((d) => d.edicao === ed && d.regiao === regiao);
-        linha[regiao === "BR" ? "Brasil" : regiao] = item
-          ? item.pctAprovados ?? null
-          : null;
+        const item = dadosCompletos.find((d) => d.edicao === ed && d.regiao === regiao);
+        linha[nomeRegiao(regiao)] = item ? item.pctAprovados ?? null : null;
       }
       return linha;
     });
-  }, [edicoesDisponiveis, dados, regioesNoGrafico]);
+  }, [edicoesDisponiveis, dadosCompletos, regioesNoGrafico]);
 
   const mediaHistoricaBR = useMemo(() => media(nacional.map((d) => d.pctAprovados)), [nacional]);
-  const unicoEstadoSelecionado =
+  const regiaoUnicaSelecionada =
     regioesFiltro.length === 1 && regioesFiltro[0] !== "BR" ? regioesFiltro[0] : null;
-  const mediaHistoricaEstado = useMemo(() => {
-    if (!unicoEstadoSelecionado) return null;
-    const serie = dados.filter((d) => d.regiao === unicoEstadoSelecionado);
+  const mediaHistoricaRegiaoUnica = useMemo(() => {
+    if (!regiaoUnicaSelecionada) return null;
+    const serie = dadosCompletos.filter((d) => d.regiao === regiaoUnicaSelecionada);
     return media(serie.map((d) => d.pctAprovados));
-  }, [dados, unicoEstadoSelecionado]);
+  }, [dadosCompletos, regiaoUnicaSelecionada]);
 
   if (carregando) return <p className="text-slate-500">Carregando dados da planilha…</p>;
   if (erro)
@@ -211,7 +259,7 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Visão Geral</h1>
+        <h1 className="text-2xl font-bold">Dados Gerais</h1>
         <p className="text-sm text-slate-500">
           Estatísticas por região e edição do Exame de Suficiência.
         </p>
@@ -242,7 +290,7 @@ export default function Home() {
             <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />
             <Legend />
             {regioesNoGrafico.map((regiao, i) => {
-              const chave = regiao === "BR" ? "Brasil" : regiao;
+              const chave = nomeRegiao(regiao);
               return (
                 <Line
                   key={chave}
@@ -277,13 +325,13 @@ export default function Home() {
                 }}
               />
             )}
-            {mediaHistoricaEstado !== null && (
+            {mediaHistoricaRegiaoUnica !== null && (
               <ReferenceLine
-                y={mediaHistoricaEstado}
+                y={mediaHistoricaRegiaoUnica}
                 stroke="#dc2626"
                 strokeDasharray="6 4"
                 label={{
-                  value: `Média histórica ${unicoEstadoSelecionado} (${formatPct(mediaHistoricaEstado)})`,
+                  value: `Média histórica ${regiaoUnicaSelecionada} (${formatPct(mediaHistoricaRegiaoUnica)})`,
                   position: "insideBottomLeft",
                   fill: "#dc2626",
                   fontSize: 11,
@@ -294,23 +342,23 @@ export default function Home() {
         </ResponsiveContainer>
         <p className="mt-2 text-xs text-slate-400">
           O gráfico mostra até 6 séries por vez (Brasil sempre incluído). Use o
-          filtro de Região acima para escolher quais comparar.
+          filtro de Região acima para escolher quais comparar — incluindo as
+          grandes regiões (Norte, Nordeste, Centro-Oeste, Sudeste, Sul).
         </p>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 font-semibold">
-          Estatísticas por edição {mostrarColunaRegiao ? "e região" : ""}
-        </h2>
+        <h2 className="mb-3 font-semibold">Estatísticas por edição e região</h2>
         <div className="max-h-[520px] overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-white">
               <tr className="border-b border-slate-200 text-left text-slate-500">
                 <th className="py-2 pr-4">Edição</th>
-                {mostrarColunaRegiao && <th className="py-2 pr-4">Região</th>}
+                <th className="py-2 pr-4">Região</th>
                 <th className="py-2 pr-4">Inscritos</th>
                 <th className="py-2 pr-4">Presentes</th>
                 <th className="py-2 pr-4">Aprovados</th>
+                <th className="py-2 pr-4">Reprovados</th>
                 <th className="py-2 pr-4">Ausentes</th>
               </tr>
             </thead>
@@ -318,12 +366,11 @@ export default function Home() {
               {linhasTabela.map((l, i) => (
                 <tr key={`${l.regiao}-${l.edicao}-${i}`} className="border-b border-slate-100">
                   <td className="py-2 pr-4 font-medium">{l.edicao}</td>
-                  {mostrarColunaRegiao && (
-                    <td className="py-2 pr-4">{l.regiao === "BR" ? "Brasil" : l.regiao}</td>
-                  )}
+                  <td className="py-2 pr-4">{nomeRegiao(l.regiao)}</td>
                   <CelulaComVariacao valor={l.inscritos} delta={l.deltaInscritos} />
                   <CelulaComVariacao valor={l.presentes} delta={l.deltaPresentes} />
                   <CelulaComVariacao valor={l.aprovados} delta={l.deltaAprovados} />
+                  <CelulaComVariacao valor={l.reprovados} delta={l.deltaReprovados} />
                   <CelulaComVariacao valor={l.ausentes} delta={l.deltaAusentes} />
                 </tr>
               ))}
