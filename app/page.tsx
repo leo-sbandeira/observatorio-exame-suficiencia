@@ -19,6 +19,39 @@ import { GRANDE_REGIAO_POR_UF, GRANDES_REGIOES } from "@/lib/regioes";
 
 const CORES = ["#0f172a", "#dc2626", "#2563eb", "#16a34a", "#9333ea", "#ea580c"];
 
+function RotuloPonto(cor: string) {
+  return (props: unknown) => {
+    const { x, y, value } = props as { x?: number; y?: number; value?: number | null };
+    if (value === null || value === undefined || x === undefined || y === undefined)
+      return null;
+    const texto = `${Math.round(Number(value) * 100)}%`;
+    const largura = texto.length * 8 + 10;
+    return (
+      <g>
+        <rect
+          x={x - largura / 2}
+          y={y - 30}
+          width={largura}
+          height={18}
+          rx={4}
+          fill="white"
+          fillOpacity={0.92}
+        />
+        <text
+          x={x}
+          y={y - 17}
+          textAnchor="middle"
+          fontSize={12}
+          fontWeight={700}
+          fill={cor}
+        >
+          {texto}
+        </text>
+      </g>
+    );
+  };
+}
+
 function nomeRegiao(r: string) {
   return r === "BR" ? "Brasil" : r;
 }
@@ -282,10 +315,17 @@ export default function Home() {
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="mb-3 font-semibold">Evolução do % de aprovados</h2>
-        <ResponsiveContainer width="100%" height={420}>
-          <LineChart data={dadosGrafico} margin={{ top: 40 }}>
+        <ResponsiveContainer width="100%" height={460}>
+          <LineChart data={dadosGrafico} margin={{ top: 40, right: 170, bottom: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="edicao" tick={{ fontSize: 13 }} />
+            <XAxis
+              dataKey="edicao"
+              interval={0}
+              angle={-60}
+              textAnchor="end"
+              height={70}
+              tick={{ fontSize: 11 }}
+            />
             <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={{ fontSize: 13 }} />
             <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />
             <Legend wrapperStyle={{ fontSize: 13 }} />
@@ -300,17 +340,7 @@ export default function Home() {
                   strokeWidth={chave === "Brasil" ? 2.5 : 2}
                   dot={false}
                 >
-                  <LabelList
-                    dataKey={chave}
-                    position="top"
-                    offset={14}
-                    fontSize={12}
-                    fontWeight={600}
-                    fill={CORES[i % CORES.length]}
-                    formatter={(v) =>
-                      v === null || v === undefined ? "" : `${Math.round(Number(v) * 100)}%`
-                    }
-                  />
+                  <LabelList dataKey={chave} content={RotuloPonto(CORES[i % CORES.length])} />
                 </Line>
               );
             })}
@@ -321,10 +351,10 @@ export default function Home() {
                 strokeWidth={3}
                 strokeDasharray="6 4"
                 label={{
-                  value: `Média histórica BR (${formatPct(mediaHistoricaBR)})`,
-                  position: "insideTopLeft",
+                  value: `Média BR: ${formatPct(mediaHistoricaBR)}`,
+                  position: "right",
                   fill: "#dc2626",
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: 700,
                 }}
               />
@@ -336,10 +366,10 @@ export default function Home() {
                 strokeWidth={3}
                 strokeDasharray="2 3"
                 label={{
-                  value: `Média histórica ${regiaoUnicaSelecionada} (${formatPct(mediaHistoricaRegiaoUnica)})`,
-                  position: "insideBottomLeft",
+                  value: `Média ${regiaoUnicaSelecionada}: ${formatPct(mediaHistoricaRegiaoUnica)}`,
+                  position: "right",
                   fill: "#7f1d1d",
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: 700,
                 }}
               />
