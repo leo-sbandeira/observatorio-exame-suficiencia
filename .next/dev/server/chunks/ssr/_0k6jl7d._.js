@@ -248,6 +248,10 @@ const links = [
     {
         href: "/conteudos",
         label: "Conteúdos"
+    },
+    {
+        href: "/simulado",
+        label: "Simulado"
     }
 ];
 function Nav() {
@@ -262,7 +266,7 @@ function Nav() {
                     children: "Observatório do Exame de Suficiência"
                 }, void 0, false, {
                     fileName: "[project]/components/Nav.tsx",
-                    lineNumber: 14,
+                    lineNumber: 15,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -273,23 +277,23 @@ function Nav() {
                             children: l.label
                         }, l.href, false, {
                             fileName: "[project]/components/Nav.tsx",
-                            lineNumber: 19,
+                            lineNumber: 20,
                             columnNumber: 13
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/components/Nav.tsx",
-                    lineNumber: 17,
+                    lineNumber: 18,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/Nav.tsx",
-            lineNumber: 13,
+            lineNumber: 14,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/Nav.tsx",
-        lineNumber: 12,
+        lineNumber: 13,
         columnNumber: 5
     }, this);
 }
@@ -2837,7 +2841,13 @@ function getImageProps(imgProps) {
                 ("TURBOPACK compile-time value", 384)
             ]),
             "qualities": ("TURBOPACK compile-time value", [
-                ("TURBOPACK compile-time value", 75)
+                ("TURBOPACK compile-time value", 75),
+                ("TURBOPACK compile-time value", 70),
+                ("TURBOPACK compile-time value", 70),
+                ("TURBOPACK compile-time value", 70),
+                ("TURBOPACK compile-time value", 70),
+                ("TURBOPACK compile-time value", 70),
+                ("TURBOPACK compile-time value", 70)
             ]),
             "path": ("TURBOPACK compile-time value", "/_next/image"),
             "loader": ("TURBOPACK compile-time value", "default"),

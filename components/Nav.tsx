@@ -5,6 +5,7 @@ const links = [
   { href: "/", label: "Dados Gerais" },
   { href: "/ies", label: "Dados por Instituição" },
   { href: "/conteudos", label: "Conteúdos" },
+  { href: "/simulado", label: "Simulado" },
 ];
 
 export default function Nav() {
