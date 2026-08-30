@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: "Observatório do Exame de Suficiência",
   description:
     "Painel público com estatísticas do Exame de Suficiência do CFC: desempenho nacional, por UF, por IES e por área de conteúdo.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 const FINANCIAMENTO = [

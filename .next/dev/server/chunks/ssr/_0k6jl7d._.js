@@ -17,7 +17,11 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Nav$2e$tsx__$5
 ;
 const metadata = {
     title: "Observatório do Exame de Suficiência",
-    description: "Painel público com estatísticas do Exame de Suficiência do CFC: desempenho nacional, por UF, por IES e por área de conteúdo."
+    description: "Painel público com estatísticas do Exame de Suficiência do CFC: desempenho nacional, por UF, por IES e por área de conteúdo.",
+    icons: {
+        icon: "/favicon.ico",
+        apple: "/apple-touch-icon.png"
+    }
 };
 const FINANCIAMENTO = [
     {
@@ -62,7 +66,7 @@ function RootLayout({ children }) {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$Nav$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 27,
+                    lineNumber: 31,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -70,7 +74,7 @@ function RootLayout({ children }) {
                     children: children
                 }, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 28,
+                    lineNumber: 32,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -89,7 +93,7 @@ function RootLayout({ children }) {
                                                 children: "Financiamento:"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 35,
+                                                lineNumber: 39,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -102,18 +106,18 @@ function RootLayout({ children }) {
                                                         className: "h-9 w-auto"
                                                     }, logo.src, false, {
                                                         fileName: "[project]/app/layout.tsx",
-                                                        lineNumber: 38,
+                                                        lineNumber: 42,
                                                         columnNumber: 21
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 36,
+                                                lineNumber: 40,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/layout.tsx",
-                                        lineNumber: 34,
+                                        lineNumber: 38,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -124,7 +128,7 @@ function RootLayout({ children }) {
                                                 children: "Apoio:"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 50,
+                                                lineNumber: 54,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -137,18 +141,18 @@ function RootLayout({ children }) {
                                                         className: "h-9 w-auto"
                                                     }, logo.src, false, {
                                                         fileName: "[project]/app/layout.tsx",
-                                                        lineNumber: 53,
+                                                        lineNumber: 57,
                                                         columnNumber: 21
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 51,
+                                                lineNumber: 55,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/layout.tsx",
-                                        lineNumber: 49,
+                                        lineNumber: 53,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -159,7 +163,7 @@ function RootLayout({ children }) {
                                                 children: "Objetivos de Desenvolvimento Sustentável (ODS):"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 65,
+                                                lineNumber: 69,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
@@ -170,19 +174,19 @@ function RootLayout({ children }) {
                                                 className: "h-10 w-auto"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/layout.tsx",
-                                                lineNumber: 68,
+                                                lineNumber: 72,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/layout.tsx",
-                                        lineNumber: 64,
+                                        lineNumber: 68,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/layout.tsx",
-                                lineNumber: 33,
+                                lineNumber: 37,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -190,29 +194,29 @@ function RootLayout({ children }) {
                                 children: "Criação e atualização: Leonardo dos Santos Bandeira"
                             }, void 0, false, {
                                 fileName: "[project]/app/layout.tsx",
-                                lineNumber: 77,
+                                lineNumber: 81,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/layout.tsx",
-                        lineNumber: 32,
+                        lineNumber: 36,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/layout.tsx",
-                    lineNumber: 31,
+                    lineNumber: 35,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/layout.tsx",
-            lineNumber: 26,
+            lineNumber: 30,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/layout.tsx",
-        lineNumber: 25,
+        lineNumber: 29,
         columnNumber: 5
     }, this);
 }
@@ -230,6 +234,8 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.react-server.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-rsc] (ecmascript)");
+;
 ;
 ;
 const links = [
@@ -262,11 +268,32 @@ function Nav() {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
                     href: "/",
-                    className: "text-2xl font-bold tracking-tight text-slate-900 md:text-3xl",
-                    children: "Observatório do Exame de Suficiência"
-                }, void 0, false, {
+                    className: "flex items-center gap-3",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
+                            src: "/logo-icone.png",
+                            alt: "Observatório do Exame de Suficiência",
+                            width: 633,
+                            height: 723,
+                            className: "h-10 w-auto md:h-12",
+                            priority: true
+                        }, void 0, false, {
+                            fileName: "[project]/components/Nav.tsx",
+                            lineNumber: 17,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                            className: "text-xl font-bold tracking-tight text-slate-900 md:text-2xl",
+                            children: "Observatório do Exame de Suficiência"
+                        }, void 0, false, {
+                            fileName: "[project]/components/Nav.tsx",
+                            lineNumber: 25,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
                     fileName: "[project]/components/Nav.tsx",
-                    lineNumber: 15,
+                    lineNumber: 16,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -277,23 +304,23 @@ function Nav() {
                             children: l.label
                         }, l.href, false, {
                             fileName: "[project]/components/Nav.tsx",
-                            lineNumber: 20,
+                            lineNumber: 31,
                             columnNumber: 13
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/components/Nav.tsx",
-                    lineNumber: 18,
+                    lineNumber: 29,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/Nav.tsx",
-            lineNumber: 14,
+            lineNumber: 15,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/Nav.tsx",
-        lineNumber: 13,
+        lineNumber: 14,
         columnNumber: 5
     }, this);
 }

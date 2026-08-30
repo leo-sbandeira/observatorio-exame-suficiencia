@@ -228,7 +228,7 @@ export default function PaginaSimulado() {
           <p className="mb-3 text-xs text-slate-400">
             {q.edicao} · {q.banca} · Questão {q.questao} · {q.conteudo}
           </p>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-800">
+          <p className="whitespace-pre-line text-justify text-sm leading-normal text-slate-800">
             {q.enunciado}
           </p>
           <div className="mt-5 space-y-2">
@@ -362,7 +362,7 @@ export default function PaginaSimulado() {
                   )}
                 </summary>
                 <div className="mt-3 text-sm">
-                  <p className="whitespace-pre-line text-slate-700">{q.enunciado}</p>
+                  <p className="whitespace-pre-line text-justify text-slate-700">{q.enunciado}</p>
                   <div className="mt-2 space-y-1">
                     {(Object.entries(q.alternativas) as [Letra, string][]).map(
                       ([letra, texto]) => (

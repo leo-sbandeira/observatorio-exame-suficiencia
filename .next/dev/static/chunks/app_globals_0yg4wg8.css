@@ -65,6 +65,8 @@
     --text-sm--line-height: calc(1.25 / .875);
     --text-lg: 1.125rem;
     --text-lg--line-height: calc(1.75 / 1.125);
+    --text-xl: 1.25rem;
+    --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
     --text-3xl: 1.875rem;
@@ -73,6 +75,7 @@
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --tracking-tight: -.025em;
+    --leading-normal: 1.5;
     --leading-relaxed: 1.625;
     --radius-md: .375rem;
     --radius-lg: .5rem;
@@ -812,6 +815,10 @@
     text-align: center;
   }
 
+  .text-justify {
+    text-align: justify;
+  }
+
   .text-left {
     text-align: left;
   }
@@ -836,9 +843,19 @@
     line-height: var(--tw-leading, var(--text-sm--line-height));
   }
 
+  .text-xl {
+    font-size: var(--text-xl);
+    line-height: var(--tw-leading, var(--text-xl--line-height));
+  }
+
   .text-xs {
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+
+  .leading-normal {
+    --tw-leading: var(--leading-normal);
+    line-height: var(--leading-normal);
   }
 
   .leading-relaxed {
@@ -997,6 +1014,15 @@
   }
 
   @media (min-width: 48rem) {
+    .md\:h-12 {
+      height: calc(var(--spacing) * 12);
+    }
+
+    .md\:text-2xl {
+      font-size: var(--text-2xl);
+      line-height: var(--tw-leading, var(--text-2xl--line-height));
+    }
+
     .md\:text-3xl {
       font-size: var(--text-3xl);
       line-height: var(--tw-leading, var(--text-3xl--line-height));
