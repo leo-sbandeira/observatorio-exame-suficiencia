@@ -218,6 +218,18 @@ export default function PaginaIES() {
           </div>
         </div>
       </div>
+      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+        <p>
+          A partir da primeira edição de 2017, o CFC passou a divulgar os
+          resultados por IES e a partir de 2019 também por modalidade de
+          ensino.
+        </p>
+        <p>
+          A divulgação dos resultados por modalidade de ensino foi suspensa a
+          partir da edição de 2024.1 e a identificação da UF - Cidade a
+          partir da edição de 2024.2.
+        </p>
+      </div>
     </div>
   );
 }

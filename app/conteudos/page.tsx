@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
 import MultiSelect from "@/components/MultiSelect";
 import type { RegistroConteudoStats } from "@/lib/types";
@@ -68,9 +69,11 @@ export default function PaginaConteudos() {
 
   const desempenhoPorConteudo = useMemo(() => {
     // Para cada conteúdo, calcula a média do % de acertos (nas edições
-    // filtradas) separadamente para cada região selecionada.
-    const conteudos = Array.from(new Set(statsDados.map((d) => d.conteudo))).sort();
-    return conteudos.map((conteudo) => {
+    // filtradas) separadamente para cada região selecionada, e ordena do
+    // maior para o menor desempenho (considerando a primeira região do
+    // filtro como referência de ordenação).
+    const conteudos = Array.from(new Set(statsDados.map((d) => d.conteudo)));
+    const linhas = conteudos.map((conteudo) => {
       const linha: Record<string, string | number | null> = { conteudo };
       for (const regiao of regioesParaGrafico) {
         const registros = statsDados.filter(
@@ -81,6 +84,12 @@ export default function PaginaConteudos() {
           : null;
       }
       return linha;
+    });
+    const regiaoOrdenacao = regioesParaGrafico[0];
+    return linhas.sort((a, b) => {
+      const va = (a[regiaoOrdenacao] as number | null) ?? -1;
+      const vb = (b[regiaoOrdenacao] as number | null) ?? -1;
+      return vb - va;
     });
   }, [statsDados, regioesParaGrafico]);
 
@@ -126,7 +135,7 @@ export default function PaginaConteudos() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Áreas de Conteúdo</h1>
+        <h1 className="text-2xl font-bold">Dados dos Conteúdos</h1>
         <p className="text-sm text-slate-500">
           Desempenho médio dos candidatos e frequência com que cada área é
           cobrada nas provas.
@@ -148,7 +157,10 @@ export default function PaginaConteudos() {
               opcoes={(regioesDisponiveis.length
                 ? regioesDisponiveis
                 : ["Brasil"]
-              ).map((r) => ({ value: r, label: r }))}
+              ).map((r) => ({
+                value: r,
+                label: `${r} (${r === "Brasil" ? "2017.2 a 2025.2" : "2017.2 a 2023.2"})`,
+              }))}
               selecionados={regioesFiltro}
               onChange={setRegioesFiltro}
             />
@@ -157,28 +169,40 @@ export default function PaginaConteudos() {
         {carregandoStats ? (
           <p className="text-slate-400">Carregando…</p>
         ) : (
-          <ResponsiveContainer width="100%" height={460}>
+          <ResponsiveContainer width="100%" height={480}>
             <BarChart
               data={desempenhoPorConteudo}
               layout="vertical"
-              margin={{ left: 40, right: 20 }}
+              margin={{ left: 40, right: 50 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
                 type="number"
                 tickFormatter={(v) => `${Math.round(v * 100)}%`}
                 domain={[0, 1]}
+                tick={{ fontSize: 13 }}
               />
-              <YAxis type="category" dataKey="conteudo" width={260} tick={{ fontSize: 11 }} />
+              <YAxis type="category" dataKey="conteudo" width={260} tick={{ fontSize: 13 }} />
               <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />
-              {regioesParaGrafico.length > 1 && <Legend />}
+              {regioesParaGrafico.length > 1 && <Legend wrapperStyle={{ fontSize: 13 }} />}
               {regioesParaGrafico.map((regiao, i) => (
                 <Bar
                   key={regiao}
                   dataKey={regiao}
                   fill={CORES[i % CORES.length]}
                   radius={[0, 4, 4, 0]}
-                />
+                >
+                  <LabelList
+                    dataKey={regiao}
+                    position="right"
+                    fontSize={12}
+                    fontWeight={600}
+                    fill="#334155"
+                    formatter={(v) =>
+                      v === null || v === undefined ? "" : `${(Number(v) * 100).toFixed(0)}%`
+                    }
+                  />
+                </Bar>
               ))}
             </BarChart>
           </ResponsiveContainer>
@@ -275,6 +299,27 @@ export default function PaginaConteudos() {
           Selecione mais de uma banca para comparar a frequência de cada uma
           lado a lado. A coluna de % de acertos usa a Aba 5 (estatística
           nacional por conteúdo e edição).
+        </p>
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+        <p>
+          Para categorizar conteúdo, assunto e tema, foi considerado o
+          edital referente ao ano de 2025.1 como parâmetro.
+        </p>
+        <p>
+          A partir da edição de 2017.2 até a de 2025.2 o CFC divulgou o
+          desempenho geral por conteúdo.
+        </p>
+        <p>
+          O CFC também publicou o desempenho das regiões por conteúdo, mas
+          somente para as edições de 2017.2 a 2023.2. Não há, assim, dados de
+          desempenho das regiões por conteúdo nas demais edições.
+        </p>
+        <p>
+          Cumpre observar que na edição de 2017.2 não há o conteúdo de
+          Controladoria, que passou a ser cobrado somente na edição de
+          2018.1.
         </p>
       </div>
     </div>

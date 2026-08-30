@@ -5,7 +5,7 @@ const links = [
   { href: "/sobre", label: "Sobre" },
   { href: "/", label: "Dados Gerais" },
   { href: "/ies", label: "Dados por Instituição" },
-  { href: "/conteudos", label: "Conteúdos" },
+  { href: "/conteudos", label: "Dados dos Conteúdos" },
   { href: "/simulado", label: "Simulado" },
 ];
 

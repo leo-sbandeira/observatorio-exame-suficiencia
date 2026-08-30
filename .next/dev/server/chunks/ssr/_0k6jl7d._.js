@@ -253,7 +253,7 @@ const links = [
     },
     {
         href: "/conteudos",
-        label: "Conteúdos"
+        label: "Dados dos Conteúdos"
     },
     {
         href: "/simulado",
