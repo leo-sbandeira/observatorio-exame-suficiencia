@@ -282,13 +282,13 @@ export default function Home() {
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="mb-3 font-semibold">Evolução do % de aprovados</h2>
-        <ResponsiveContainer width="100%" height={380}>
-          <LineChart data={dadosGrafico} margin={{ top: 24 }}>
+        <ResponsiveContainer width="100%" height={420}>
+          <LineChart data={dadosGrafico} margin={{ top: 40 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="edicao" tick={{ fontSize: 11 }} />
-            <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={{ fontSize: 12 }} />
+            <XAxis dataKey="edicao" tick={{ fontSize: 13 }} />
+            <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={{ fontSize: 13 }} />
             <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: 13 }} />
             {regioesNoGrafico.map((regiao, i) => {
               const chave = nomeRegiao(regiao);
               return (
@@ -303,7 +303,9 @@ export default function Home() {
                   <LabelList
                     dataKey={chave}
                     position="top"
-                    fontSize={9}
+                    offset={14}
+                    fontSize={12}
+                    fontWeight={600}
                     fill={CORES[i % CORES.length]}
                     formatter={(v) =>
                       v === null || v === undefined ? "" : `${Math.round(Number(v) * 100)}%`
@@ -315,26 +317,30 @@ export default function Home() {
             {mediaHistoricaBR !== null && (
               <ReferenceLine
                 y={mediaHistoricaBR}
-                stroke="#0f172a"
+                stroke="#dc2626"
+                strokeWidth={3}
                 strokeDasharray="6 4"
                 label={{
                   value: `Média histórica BR (${formatPct(mediaHistoricaBR)})`,
                   position: "insideTopLeft",
-                  fill: "#0f172a",
-                  fontSize: 11,
+                  fill: "#dc2626",
+                  fontSize: 16,
+                  fontWeight: 700,
                 }}
               />
             )}
             {mediaHistoricaRegiaoUnica !== null && (
               <ReferenceLine
                 y={mediaHistoricaRegiaoUnica}
-                stroke="#dc2626"
-                strokeDasharray="6 4"
+                stroke="#7f1d1d"
+                strokeWidth={3}
+                strokeDasharray="2 3"
                 label={{
                   value: `Média histórica ${regiaoUnicaSelecionada} (${formatPct(mediaHistoricaRegiaoUnica)})`,
                   position: "insideBottomLeft",
-                  fill: "#dc2626",
-                  fontSize: 11,
+                  fill: "#7f1d1d",
+                  fontSize: 16,
+                  fontWeight: 700,
                 }}
               />
             )}
@@ -382,6 +388,19 @@ export default function Home() {
           edição imediatamente anterior (mesmo que essa edição anterior não
           esteja marcada no filtro).
         </p>
+        <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+          <p>
+            Das edições de 2011.1 a 2025.2 tem-se os resultados estatísticos
+            gerais e por UF (Unidade da Federação), que foram integrados na
+            base. Esses dados referem-se ao número e percentuais de
+            inscritos, presentes, ausentes, aprovados e reprovados.
+          </p>
+          <p>
+            O relatório de 2020.2 não possui informações para o estado do
+            Amazonas (AM). A prova da segunda edição do exame não foi
+            aplicada no estado, dado o cenário pandêmico vivido à época.
+          </p>
+        </div>
       </div>
     </div>
   );
