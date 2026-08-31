@@ -4,13 +4,39 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 
 export const metadata: Metadata = {
-  title: "Observatório do Exame de Suficiência",
+  metadataBase: new URL("https://observatoriosuficiencia.com.br"),
+  title: {
+    default: "Observatório do Exame de Suficiência",
+    template: "%s | Observatório do Exame de Suficiência",
+  },
   description:
-    "Painel público com estatísticas do Exame de Suficiência do CFC: desempenho nacional, por UF, por IES e por área de conteúdo.",
+    "Observatório do Exame de Suficiência do CFC: estatísticas oficiais por edição, UF, instituição de ensino e área de conteúdo, além de simulado gratuito com questões de provas anteriores.",
+  keywords: [
+    "observatório do exame de suficiência",
+    "exame de suficiência",
+    "exame de suficiência CFC",
+    "simulado exame de suficiência",
+    "CFC contabilidade",
+    "estatísticas exame de suficiência",
+  ],
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "Observatório do Exame de Suficiência",
+    description:
+      "Estatísticas oficiais do Exame de Suficiência do CFC por edição, UF, instituição de ensino e área de conteúdo, além de simulado gratuito.",
+    url: "https://observatoriosuficiencia.com.br",
+    siteName: "Observatório do Exame de Suficiência",
+    locale: "pt_BR",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: { google: "AGOVjvudU90NLQKkr1eVfEaiM2vSdoEmHG3F1NtO3oM" },
 };
 
 const FINANCIAMENTO = [
