@@ -71,6 +71,43 @@ A forma mais simples de hospedar um site Next.js com domínio próprio
 Alternativas à Vercel: Netlify e Cloudflare Pages também suportam
 Next.js com App Router e rotas de API.
 
+## Registro de quem faz o simulado
+
+Para saber quantas pessoas fazem o simulado e de onde elas são (estado,
+cidade e instituição), o formulário exibido antes do simulado envia esses
+dados para uma planilha Google **sua e privada**, via um Web App do Google
+Apps Script. Nenhum dado fica salvo no código nem em nenhum serviço externo
+além dessa planilha.
+
+1. Crie uma planilha Google nova (ex: "Observatório — Registros do Simulado")
+   com esta primeira linha de cabeçalho: `Data/Hora | Estado | Cidade | Instituição | Modo`.
+2. No menu da planilha, vá em **Extensões → Apps Script**.
+3. Apague o conteúdo padrão e cole:
+
+   ```javascript
+   function doPost(e) {
+     var dados = JSON.parse(e.postData.contents);
+     var planilha = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+     planilha.appendRow([
+       dados.dataHora, dados.estado, dados.cidade, dados.instituicao, dados.modo
+     ]);
+     return ContentService.createTextOutput(
+       JSON.stringify({ ok: true })
+     ).setMimeType(ContentService.MimeType.JSON);
+   }
+   ```
+
+4. Clique em **Implantar → Nova implantação**, escolha o tipo **App da Web**,
+   em "Executar como" deixe você mesmo, e em "Quem pode acessar" escolha
+   **Qualquer pessoa**. Implante.
+5. Copie a URL do Web App gerada e cole em `SIMULADO_WEBHOOK_URL` no
+   `.env.local` (e também nas variáveis de ambiente da Vercel).
+
+A cada vez que alguém clicar em "Gerar simulado oficial" ou "Gerar simulado
+personalizado", uma nova linha é adicionada automaticamente nessa planilha.
+Se a variável não estiver configurada, o site funciona normalmente — só não
+registra nada.
+
 ## Estrutura do projeto
 
 - `lib/csv.ts` — busca e faz o parsing do CSV público do Google Sheets
