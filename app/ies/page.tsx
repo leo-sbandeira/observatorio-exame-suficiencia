@@ -45,6 +45,12 @@ const COLUNAS_EXPORT: ColunaExport[] = [
   { chave: "pctAusentesInscritos", titulo: "% Ausentes/Inscritos" },
 ];
 
+const NOTAS_RODAPE_EXPORT = [
+  "Os dados aqui sistematizados foram recuperados no website do Conselho Federal de Contabilidade (CFC).",
+  "A partir da primeira edição de 2017, o CFC passou a divulgar os resultados por IES e a partir de 2019 também por modalidade de ensino.",
+  "A divulgação dos resultados por modalidade de ensino foi suspensa a partir da edição de 2024.1 e a identificação da UF - Cidade a partir da edição de 2024.2.",
+];
+
 export default function PaginaIES() {
   const [resposta, setResposta] = useState<RespostaAPI | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -125,9 +131,17 @@ export default function PaginaIES() {
       const json: RespostaAPI = await r.json();
       const dados = json.dados as unknown as Record<string, unknown>[];
       const nomeBase = "dados-por-instituicao";
-      if (formato === "csv") exportarCSV(dados, COLUNAS_EXPORT, `${nomeBase}.csv`);
-      else if (formato === "excel") exportarExcel(dados, COLUNAS_EXPORT, `${nomeBase}.xlsx`);
-      else exportarPDF(dados, COLUNAS_EXPORT, "Dados por Instituição", `${nomeBase}.pdf`);
+      if (formato === "csv") exportarCSV(dados, COLUNAS_EXPORT, `${nomeBase}.csv`, NOTAS_RODAPE_EXPORT);
+      else if (formato === "excel")
+        exportarExcel(dados, COLUNAS_EXPORT, `${nomeBase}.xlsx`, NOTAS_RODAPE_EXPORT);
+      else
+        await exportarPDF(
+          dados,
+          COLUNAS_EXPORT,
+          "Dados por Instituição",
+          `${nomeBase}.pdf`,
+          NOTAS_RODAPE_EXPORT
+        );
     } finally {
       setExportando(null);
     }
@@ -173,7 +187,7 @@ export default function PaginaIES() {
           opcoes={opcoesInstituicoes}
           selecionados={instituicoesFiltro}
           onChange={setInstituicoesFiltro}
-          placeholder="Digite o nome ou sigla (ex: UFMT)…"
+          placeholder="Digite o nome ou sigla (ex: UNITINS)…"
         />
         <label className="flex flex-col text-xs font-medium text-slate-400">
           Edição
