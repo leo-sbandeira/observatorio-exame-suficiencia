@@ -1,2 +1,4 @@
-{"timestamp":"00:00:01.214","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:12.668","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:02.104","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:02:09.300","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:02:22.968","source":"Server","level":"WARN","message":"Failed to set fetch cache \"https://docs.google.com/spreadsheets/d/1xiBneJYk00PNFdA_LKZCgm7bTXNL2xpmaSEbirHovic/export?format=csv&gid=563437690\" Error: Failed to set Next.js data cache for https://docs.google.com/spreadsheets/d/1xiBneJYk00PNFdA_LKZCgm7bTXNL2xpmaSEbirHovic/export?format=csv&gid=563437690, items over 2MB can not be cached (11465570 bytes)"}
+{"timestamp":"00:02:27.667","source":"Server","level":"WARN","message":"Failed to set fetch cache \"https://docs.google.com/spreadsheets/d/1xiBneJYk00PNFdA_LKZCgm7bTXNL2xpmaSEbirHovic/export?format=csv&gid=563437690\" Error: Failed to set Next.js data cache for https://docs.google.com/spreadsheets/d/1xiBneJYk00PNFdA_LKZCgm7bTXNL2xpmaSEbirHovic/export?format=csv&gid=563437690, items over 2MB can not be cached (11465548 bytes)"}

@@ -73,14 +73,17 @@ Next.js com App Router e rotas de API.
 
 ## Registro de quem faz o simulado
 
-Para saber quantas pessoas fazem o simulado e de onde elas são (estado,
-cidade e instituição), o formulário exibido antes do simulado envia esses
-dados para uma planilha Google **sua e privada**, via um Web App do Google
-Apps Script. Nenhum dado fica salvo no código nem em nenhum serviço externo
-além dessa planilha.
+Para saber quantas pessoas fazem o simulado e de onde elas são, o servidor
+resolve automaticamente o estado e a cidade a partir do IP de quem acessa
+(geolocalização por IP, via a API pública ipwho.is) sempre que alguém clica
+em "Gerar simulado" — sem formulário, sem pedir nenhum dado à pessoa. O
+resultado é enviado para uma planilha Google **sua e privada**, via um Web
+App do Google Apps Script. Nenhum dado fica salvo no código nem em nenhum
+serviço externo além dessa planilha (o IP em si não é armazenado, só o
+estado/cidade derivados dele).
 
 1. Crie uma planilha Google nova (ex: "Observatório — Registros do Simulado")
-   com esta primeira linha de cabeçalho: `Data/Hora | Estado | Cidade | Instituição | Modo`.
+   com esta primeira linha de cabeçalho: `Data/Hora | Estado | Cidade | Modo`.
 2. No menu da planilha, vá em **Extensões → Apps Script**.
 3. Apague o conteúdo padrão e cole:
 
@@ -89,7 +92,7 @@ além dessa planilha.
      var dados = JSON.parse(e.postData.contents);
      var planilha = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
      planilha.appendRow([
-       dados.dataHora, dados.estado, dados.cidade, dados.instituicao, dados.modo
+       dados.dataHora, dados.estado, dados.cidade, dados.modo
      ]);
      return ContentService.createTextOutput(
        JSON.stringify({ ok: true })
@@ -102,6 +105,10 @@ além dessa planilha.
    **Qualquer pessoa**. Implante.
 5. Copie a URL do Web App gerada e cole em `SIMULADO_WEBHOOK_URL` no
    `.env.local` (e também nas variáveis de ambiente da Vercel).
+
+Observação: em ambiente local (`localhost`), o IP não é público, então a
+geolocalização retorna "desconhecido (rede local)" — isso é esperado; no
+site publicado, com visitantes reais, a geolocalização funciona normalmente.
 
 A cada vez que alguém clicar em "Gerar simulado oficial" ou "Gerar simulado
 personalizado", uma nova linha é adicionada automaticamente nessa planilha.

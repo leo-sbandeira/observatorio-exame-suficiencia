@@ -1,4 +1,8 @@
 {
-  "/api/geral/route": "app/api/geral/route.js",
-  "/page": "app/page.js"
+  "/api/conteudo/route": "app/api/conteudo/route.js",
+  "/api/conteudos-cobrados/route": "app/api/conteudos-cobrados/route.js",
+  "/api/ies/route": "app/api/ies/route.js",
+  "/conteudos/page": "app/conteudos/page.js",
+  "/ies/page": "app/ies/page.js",
+  "/simulado/page": "app/simulado/page.js"
 }

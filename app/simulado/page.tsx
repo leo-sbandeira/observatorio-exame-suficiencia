@@ -16,102 +16,11 @@ import {
 type Fase = "config" | "prova" | "resultado";
 type Letra = "A" | "B" | "C" | "D";
 
-const UFS = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS",
-  "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC",
-  "SP", "SE", "TO",
-];
-
 function opcoes(lista: string[]) {
   return lista.map((v) => ({ value: v, label: v }));
 }
 
-function TelaIdentificacao({
-  onContinuar,
-}: {
-  onContinuar: (dados: { estado: string; cidade: string; instituicao: string }) => void;
-}) {
-  const [estado, setEstado] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [instituicao, setInstituicao] = useState("");
-  const podeContinuar = estado && cidade.trim() && instituicao.trim();
-
-  return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Simulado — Exame de Suficiência</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Antes de começar, conte rapidamente de onde você é. Isso nos ajuda a
-          entender o alcance do Observatório — nenhum dado pessoal (nome,
-          e-mail, CPF) é solicitado.
-        </p>
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (podeContinuar) onContinuar({ estado, cidade: cidade.trim(), instituicao: instituicao.trim() });
-        }}
-        className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Estado (UF)</label>
-          <select
-            value={estado}
-            onChange={(e) => setEstado(e.target.value)}
-            required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="">Selecione...</option>
-            {UFS.map((uf) => (
-              <option key={uf} value={uf}>
-                {uf}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Cidade</label>
-          <input
-            type="text"
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Ex: Palmas"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Instituição de ensino
-          </label>
-          <input
-            type="text"
-            value={instituicao}
-            onChange={(e) => setInstituicao(e.target.value)}
-            required
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Ex: UNITINS"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!podeContinuar}
-          className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-40"
-        >
-          Continuar
-        </button>
-      </form>
-    </div>
-  );
-}
-
 export default function PaginaSimulado() {
-  const [identificado, setIdentificado] = useState(false);
-  const [dadosIdentificacao, setDadosIdentificacao] = useState<{
-    estado: string;
-    cidade: string;
-    instituicao: string;
-  } | null>(null);
   const [fase, setFase] = useState<Fase>("config");
 
   // Filtros do modo personalizado
@@ -182,24 +91,13 @@ export default function PaginaSimulado() {
   }
 
   function registrarInicio(modo: "oficial" | "personalizado") {
-    if (!dadosIdentificacao) return;
+    // A localização (estado/cidade) é resolvida no servidor, a partir do IP
+    // da requisição — nenhum dado é pedido ou coletado no navegador.
     fetch("/api/simulado/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...dadosIdentificacao, modo }),
+      body: JSON.stringify({ modo }),
     }).catch(() => {});
-  }
-
-  // --- Identificação (uma vez por sessão nesta página) ---
-  if (!identificado) {
-    return (
-      <TelaIdentificacao
-        onContinuar={(dados) => {
-          setDadosIdentificacao(dados);
-          setIdentificado(true);
-        }}
-      />
-    );
   }
 
   // --- Tela de configuração ---
