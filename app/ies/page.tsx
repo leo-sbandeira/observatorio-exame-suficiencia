@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { RegistroIES } from "@/lib/types";
+import BuscaMultipla from "@/components/BuscaMultipla";
+import { exportarCSV, exportarExcel, exportarPDF, ColunaExport } from "@/lib/exportar";
 
 function formatPct(v: number | null | undefined) {
   if (v === null || v === undefined) return "—";
@@ -21,14 +23,33 @@ interface RespostaAPI {
     edicoes: string[];
     ufs: string[];
     modalidades: string[];
+    instituicoes: { nome: string; sigla: string }[];
   };
   erro?: string;
 }
 
+const COLUNAS_EXPORT: ColunaExport[] = [
+  { chave: "edicao", titulo: "Edição" },
+  { chave: "ies", titulo: "IES" },
+  { chave: "sigla", titulo: "Sigla" },
+  { chave: "uf", titulo: "UF" },
+  { chave: "cidade", titulo: "Cidade" },
+  { chave: "modalidade", titulo: "Modalidade" },
+  { chave: "inscritos", titulo: "Inscritos" },
+  { chave: "presentes", titulo: "Presentes" },
+  { chave: "aprovados", titulo: "Aprovados" },
+  { chave: "pctAprovadosPresentes", titulo: "% Aprovados/Presentes" },
+  { chave: "reprovados", titulo: "Reprovados" },
+  { chave: "pctReprovadosPresentes", titulo: "% Reprovados/Presentes" },
+  { chave: "ausentes", titulo: "Ausentes" },
+  { chave: "pctAusentesInscritos", titulo: "% Ausentes/Inscritos" },
+];
+
 export default function PaginaIES() {
   const [resposta, setResposta] = useState<RespostaAPI | null>(null);
   const [carregando, setCarregando] = useState(true);
-  const [busca, setBusca] = useState("");
+  const [exportando, setExportando] = useState<string | null>(null);
+  const [instituicoesFiltro, setInstituicoesFiltro] = useState<string[]>([]);
   const [edicao, setEdicao] = useState("");
   const [uf, setUf] = useState("");
   const [modalidade, setModalidade] = useState("");
@@ -36,31 +57,45 @@ export default function PaginaIES() {
   const [ordem, setOrdem] = useState<"asc" | "desc">("desc");
   const [pagina, setPagina] = useState(1);
 
-  useEffect(() => {
-    const params = new URLSearchParams({
-      busca,
+  function montarParams(extra: Record<string, string> = {}) {
+    return new URLSearchParams({
+      instituicoes: instituicoesFiltro.join(","),
       edicao,
       uf,
       modalidade,
       ordenarPor,
       ordem,
-      pagina: String(pagina),
-      porPagina: "25",
+      ...extra,
     });
+  }
+
+  useEffect(() => {
+    const params = montarParams({ pagina: String(pagina), porPagina: "25" });
     setCarregando(true);
     fetch(`/api/ies?${params.toString()}`)
       .then((r) => r.json())
       .then(setResposta)
       .finally(() => setCarregando(false));
-  }, [busca, edicao, uf, modalidade, ordenarPor, ordem, pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instituicoesFiltro, edicao, uf, modalidade, ordenarPor, ordem, pagina]);
 
   // volta para página 1 quando um filtro muda
   useEffect(() => {
     setPagina(1);
-  }, [busca, edicao, uf, modalidade]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instituicoesFiltro, edicao, uf, modalidade]);
 
   const totalPaginas = useMemo(
     () => (resposta ? Math.max(1, Math.ceil(resposta.total / resposta.porPagina)) : 1),
+    [resposta]
+  );
+
+  const opcoesInstituicoes = useMemo(
+    () =>
+      (resposta?.filtrosDisponiveis.instituicoes ?? []).map((i) => ({
+        value: i.nome,
+        label: i.sigla ? `${i.nome} (${i.sigla})` : i.nome,
+      })),
     [resposta]
   );
 
@@ -82,59 +117,109 @@ export default function PaginaIES() {
     );
   }
 
+  async function exportarDados(formato: "csv" | "excel" | "pdf") {
+    setExportando(formato);
+    try {
+      const params = montarParams({ exportar: "true" });
+      const r = await fetch(`/api/ies?${params.toString()}`);
+      const json: RespostaAPI = await r.json();
+      const dados = json.dados as unknown as Record<string, unknown>[];
+      const nomeBase = "dados-por-instituicao";
+      if (formato === "csv") exportarCSV(dados, COLUNAS_EXPORT, `${nomeBase}.csv`);
+      else if (formato === "excel") exportarExcel(dados, COLUNAS_EXPORT, `${nomeBase}.xlsx`);
+      else exportarPDF(dados, COLUNAS_EXPORT, "Dados por Instituição", `${nomeBase}.pdf`);
+    } finally {
+      setExportando(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dados por Instituição</h1>
-        <p className="text-sm text-slate-500">
-          Busque, filtre e ordene os resultados por instituição de ensino.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Dados por Instituição</h1>
+          <p className="text-sm text-slate-500">
+            Busque, filtre e ordene os resultados por instituição de ensino.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => exportarDados("csv")}
+            disabled={exportando !== null}
+            className="rounded-md border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            {exportando === "csv" ? "Exportando…" : "Exportar CSV"}
+          </button>
+          <button
+            onClick={() => exportarDados("excel")}
+            disabled={exportando !== null}
+            className="rounded-md border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            {exportando === "excel" ? "Exportando…" : "Exportar Excel"}
+          </button>
+          <button
+            onClick={() => exportarDados("pdf")}
+            disabled={exportando !== null}
+            className="rounded-md border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            {exportando === "pdf" ? "Exportando…" : "Exportar PDF"}
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <input
-          type="text"
-          placeholder="Buscar por IES, sigla ou cidade…"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="min-w-[220px] flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+      <div className="flex flex-wrap items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <BuscaMultipla
+          titulo="Instituição"
+          opcoes={opcoesInstituicoes}
+          selecionados={instituicoesFiltro}
+          onChange={setInstituicoesFiltro}
+          placeholder="Digite o nome ou sigla (ex: UFMT)…"
         />
-        <select
-          value={edicao}
-          onChange={(e) => setEdicao(e.target.value)}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-        >
-          <option value="">Todas as edições</option>
-          {resposta?.filtrosDisponiveis.edicoes.map((ed) => (
-            <option key={ed} value={ed}>
-              {ed}
-            </option>
-          ))}
-        </select>
-        <select
-          value={uf}
-          onChange={(e) => setUf(e.target.value)}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-        >
-          <option value="">Todas as UFs</option>
-          {resposta?.filtrosDisponiveis.ufs.map((u) => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
-        </select>
-        <select
-          value={modalidade}
-          onChange={(e) => setModalidade(e.target.value)}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-        >
-          <option value="">Todas as modalidades</option>
-          {resposta?.filtrosDisponiveis.modalidades.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
+        <label className="flex flex-col text-xs font-medium text-slate-400">
+          Edição
+          <select
+            value={edicao}
+            onChange={(e) => setEdicao(e.target.value)}
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="">Todas as edições</option>
+            {resposta?.filtrosDisponiveis.edicoes.map((ed) => (
+              <option key={ed} value={ed}>
+                {ed}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col text-xs font-medium text-slate-400">
+          UF
+          <select
+            value={uf}
+            onChange={(e) => setUf(e.target.value)}
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="">Todas as UFs</option>
+            {resposta?.filtrosDisponiveis.ufs.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col text-xs font-medium text-slate-400">
+          Modalidade
+          <select
+            value={modalidade}
+            onChange={(e) => setModalidade(e.target.value)}
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          >
+            <option value="">Todas as modalidades</option>
+            {resposta?.filtrosDisponiveis.modalidades.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -228,6 +313,11 @@ export default function PaginaIES() {
           A divulgação dos resultados por modalidade de ensino foi suspensa a
           partir da edição de 2024.1 e a identificação da UF - Cidade a
           partir da edição de 2024.2.
+        </p>
+        <p>
+          Os botões de exportação (CSV, Excel e PDF) exportam todos os
+          resultados que correspondem aos filtros aplicados no momento, não
+          apenas a página exibida na tela.
         </p>
       </div>
     </div>

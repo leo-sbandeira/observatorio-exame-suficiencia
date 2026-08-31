@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const edicao = searchParams.get("edicao");
     const uf = searchParams.get("uf");
     const modalidade = searchParams.get("modalidade");
-    const busca = searchParams.get("busca")?.toLowerCase().trim();
+    const instituicoes = searchParams.get("instituicoes")?.split(",").filter(Boolean);
     const ordenarPor = (searchParams.get("ordenarPor") ??
       "pctAprovadosPresentes") as OrdenavelPor;
     const ordem = searchParams.get("ordem") === "asc" ? "asc" : "desc";
@@ -37,13 +37,7 @@ export async function GET(req: NextRequest) {
     if (edicao) dados = dados.filter((d) => d.edicao === edicao);
     if (uf) dados = dados.filter((d) => d.uf === uf);
     if (modalidade) dados = dados.filter((d) => d.modalidade === modalidade);
-    if (busca)
-      dados = dados.filter(
-        (d) =>
-          d.ies.toLowerCase().includes(busca) ||
-          d.sigla.toLowerCase().includes(busca) ||
-          d.cidade.toLowerCase().includes(busca)
-      );
+    if (instituicoes?.length) dados = dados.filter((d) => instituicoes.includes(d.ies));
 
     dados.sort((a, b) => {
       const va = a[ordenarPor];
@@ -59,8 +53,12 @@ export async function GET(req: NextRequest) {
     });
 
     const total = dados.length;
+    const exportarTudo = searchParams.get("exportar") === "true";
+    const LIMITE_EXPORTACAO = 20000;
     const inicio = (pagina - 1) * porPagina;
-    const pageData = dados.slice(inicio, inicio + porPagina);
+    const pageData = exportarTudo
+      ? dados.slice(0, LIMITE_EXPORTACAO)
+      : dados.slice(inicio, inicio + porPagina);
 
     // Listas úteis para popular filtros no front-end
     const edicoesDisponiveis = Array.from(
@@ -72,6 +70,17 @@ export async function GET(req: NextRequest) {
     const modalidadesDisponiveis = Array.from(
       new Set(raw.map((r) => (r["Modalidade"] ?? "").trim()).filter(Boolean))
     ).sort();
+    const instituicoesMapa = new Map<string, string>();
+    for (const r of raw) {
+      const nome = (r["IES"] ?? "").trim();
+      if (!nome || nome.toLowerCase() === "total") continue;
+      if (!instituicoesMapa.has(nome)) {
+        instituicoesMapa.set(nome, (r["Sigla"] ?? "").trim());
+      }
+    }
+    const instituicoesDisponiveis = Array.from(instituicoesMapa.entries())
+      .map(([nome, sigla]) => ({ nome, sigla }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
 
     return NextResponse.json({
       total,
@@ -82,6 +91,7 @@ export async function GET(req: NextRequest) {
         edicoes: edicoesDisponiveis,
         ufs: ufsDisponiveis,
         modalidades: modalidadesDisponiveis,
+        instituicoes: instituicoesDisponiveis,
       },
     });
   } catch (err) {
