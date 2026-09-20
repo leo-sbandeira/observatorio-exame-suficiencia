@@ -1,106 +1,162 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-interface Resultado {
-  id: string;
-  edicao: string;
-  uf: string;
-  ies: string;
+interface EstatisticasSimulado {
+  simuladosOficiais: {
+    total: number;
+    media: number | null;
+    maior: number | null;
+    menor: number | null;
+  };
+  simuladosPersonalizados: {
+    total: number;
+    media: number | null;
+    maior: number | null;
+    menor: number | null;
+    edicoes: string[];
+    conteudos: string[];
+  };
 }
 
 const Simulado = () => {
-  const [filtros, setFiltros] = useState({
-    edicao: '',
-    uf: '',
-    cidade: '',
-    modalidade: '',
-    ies: ''
-  });
-
-  const [resultados, setResultados] = useState<Resultado[]>([]);
-  const [pesquisaAtivada, setPesquisaAtivada] = useState(false);
+  const [estatisticas, setEstatisticas] = useState<EstatisticasSimulado | null>(null);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    buscarDadosIniciais();
+    fetch("/api/simulado/estatisticas")
+      .then((res) => res.json())
+      .then(setEstatisticas)
+      .catch(() => {})
+      .finally(() => setCarregando(false));
   }, []);
 
-  const buscarDadosIniciais = () => {
-    fetch('/api/resultados')
-      .then(res => res.json())
-      .then((data: Resultado[]) => {
-        const ordenado = data.sort((a, b) => {
-          if (a.edicao !== b.edicao) {
-            return b.edicao.localeCompare(a.edicao);
-          } else {
-            return a.ies.localeCompare(b.ies);
-          }
-        });
-        setResultados(ordenado);
-      });
-  };
+  function formatarPercentual(v: number | null): string {
+    if (v === null) return "—";
+    return v.toFixed(1) + "%";
+  }
 
-  const handleFiltroChange = (campo: string, valor: string) => {
-    setFiltros(prevState => ({
-      ...prevState,
-      [campo]: valor
-    }));
-    setPesquisaAtivada(true);
-  };
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-slate-500">Carregando estatísticas...</p>
+      </div>
+    );
+  }
 
-  const handlePesquisar = () => {
-    fetch(`/api/resultados?edicao=${filtros.edicao}&uf=${filtros.uf}&cidade=${filtros.cidade}&modalidade=${filtros.modalidade}&ies=${filtros.ies}`)
-      .then(res => res.json())
-      .then((data: Resultado[]) => {
-        const resultadosFiltrados = data.sort((a, b) => {
-          if (a.edicao !== b.edicao) {
-            return b.edicao.localeCompare(a.edicao);
-          } else {
-            return a.ies.localeCompare(b.ies);
-          }
-        });
-        setResultados(resultadosFiltrados);
-      });
-  };
+  if (!estatisticas) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold">Simulado — Exame de Suficiência</h1>
+        <p className="text-slate-500">Não foi possível carregar as estatísticas.</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Simulado do Exame de Suficiência</h1>
-
-      <div className="filtros">
-        <label>
-          Edição
-          <select value={filtros.edicao} onChange={e => handleFiltroChange('edicao', e.target.value)}>
-            <option value="">Todas</option>
-            <option value="2023.1">2023.1</option>
-            <option value="2022.2">2022.2</option>
-            {/* Opções de edição */}
-          </select>
-        </label>
-
-        {/* Demais filtros */}
-
-        <button
-          onClick={handlePesquisar}
-          disabled={!pesquisaAtivada}
-          style={{ opacity: pesquisaAtivada ? 1 : 0.5 }}
-        >
-          Pesquisar
-        </button>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold">Simulado — Exame de Suficiência</h1>
+        <p className="text-sm text-slate-500">
+          Estatísticas de simulados realizados pelos usuários
+        </p>
       </div>
 
-      {resultados.length > 0 && (
-        <>
-          <h2>Resultados</h2>
-          <ul>
-            {resultados.map(r => (
-              <li key={r.id}>
-                Edição: {r.edicao} - UF: {r.uf} - IES: {r.ies}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      {/* Simulados Oficiais */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">Simulados Oficiais Realizados</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <p className="text-xs text-slate-400">Total</p>
+            <p className="text-2xl font-bold text-slate-900">{estatisticas.simuladosOficiais.total}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Média de Acertos</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatarPercentual(estatisticas.simuladosOficiais.media)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Maior Acerto</p>
+            <p className="text-2xl font-bold text-green-600">
+              {formatarPercentual(estatisticas.simuladosOficiais.maior)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Menor Acerto</p>
+            <p className="text-2xl font-bold text-red-600">
+              {formatarPercentual(estatisticas.simuladosOficiais.menor)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Simulados Personalizados */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">Simulados Personalizados Realizados</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <p className="text-xs text-slate-400">Total</p>
+            <p className="text-2xl font-bold text-slate-900">{estatisticas.simuladosPersonalizados.total}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Média de Acertos</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatarPercentual(estatisticas.simuladosPersonalizados.media)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Maior Acerto</p>
+            <p className="text-2xl font-bold text-green-600">
+              {formatarPercentual(estatisticas.simuladosPersonalizados.maior)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Menor Acerto</p>
+            <p className="text-2xl font-bold text-red-600">
+              {formatarPercentual(estatisticas.simuladosPersonalizados.menor)}
+            </p>
+          </div>
+        </div>
+
+        {/* Edições Simuladas */}
+        <div className="mt-6 border-t border-slate-200 pt-6">
+          <h3 className="mb-3 text-sm font-semibold text-slate-900">Edições Simuladas</h3>
+          {estatisticas.simuladosPersonalizados.edicoes.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {estatisticas.simuladosPersonalizados.edicoes.map((edicao) => (
+                <span
+                  key={edicao}
+                  className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700"
+                >
+                  {edicao}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">Nenhum dado disponível</p>
+          )}
+        </div>
+
+        {/* Conteúdos Simulados */}
+        <div className="mt-6 border-t border-slate-200 pt-6">
+          <h3 className="mb-3 text-sm font-semibold text-slate-900">Conteúdos Simulados</h3>
+          {estatisticas.simuladosPersonalizados.conteudos.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {estatisticas.simuladosPersonalizados.conteudos.map((conteudo) => (
+                <span
+                  key={conteudo}
+                  className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700"
+                >
+                  {conteudo}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">Nenhum dado disponível</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
