@@ -134,127 +134,179 @@ export default function PaginaSimulado() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 12;
     const contentWidth = pageWidth - 2 * margin;
-    let yPosition = margin;
 
-    // Cabeçalho com logo
+    let logoDataUrl = "";
     try {
       const response = await fetch("/logo-icone.png");
       const blob = await response.blob();
-      const logoDataUrl = await new Promise<string>((resolve) => {
+      logoDataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(blob);
       });
-      const logoWidth = 12;
-      const logoHeight = 12;
-      doc.addImage(logoDataUrl, "PNG", margin, yPosition - 2, logoWidth, logoHeight);
     } catch {
       // Se não conseguir carregar, continua sem logo
     }
 
-    doc.setFontSize(16);
+    // Função para renderizar cabeçalho (chamada em cada página)
+    const renderHeader = (pageNum: number) => {
+      let y = 8;
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, "PNG", margin, y, 10, 10);
+      }
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("Observatório do Exame de Suficiência", margin + 12, y + 6);
+      y += 12;
+      doc.setDrawColor(180, 180, 180);
+      doc.line(margin, y, pageWidth - margin, y);
+      return y + 4;
+    };
+
+    // Primeira página com informações do candidato
+    let yPosition = renderHeader(1);
+    yPosition += 6;
+
+    doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin + 15, yPosition);
-    yPosition += 12;
+    doc.text("Simulado do Exame de Suficiência", pageWidth / 2, yPosition, { align: "center" });
+    yPosition += 10;
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    const dataHoje = new Date().toLocaleDateString("pt-BR");
-    doc.text(`Data: ${dataHoje}`, margin, yPosition);
+    doc.text(`Nome: ___________________________________________________`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Total de questões: ${questoesAExportar.length}`, margin, yPosition);
-    yPosition += 10;
+    doc.text(`Data: ___________________    Número de Acertos: _____`, margin, yPosition);
+    yPosition += 12;
 
     // Questões
-    doc.setFontSize(11);
+    let currentPage = 1;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+
     questoesAExportar.forEach((questao, index) => {
       const questaoNum = index + 1;
+      const metadados = `${questao.edicao} · ${questao.banca} · Questão ${questao.questao} · ${questao.conteudo}`;
 
-      if (yPosition > pageHeight - margin - 30) {
+      // Verificar se precisa de nova página
+      if (yPosition > pageHeight - margin - 15) {
+        currentPage++;
         doc.addPage();
-        yPosition = margin;
+        yPosition = renderHeader(currentPage);
+        yPosition += 6;
+        // Rodapé
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
       }
 
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Questão ${questaoNum}`, margin, yPosition);
-      yPosition += 5;
-
+      // Número e metadados da questão
+      doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      const linhas = doc.splitTextToSize(questao.enunciado, contentWidth);
-      doc.text(linhas, margin, yPosition);
-      yPosition += linhas.length * 4 + 3;
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Questão ${questaoNum}: ${metadados}`, margin, yPosition);
+      yPosition += 4;
+
+      // Enunciado (justificado)
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+      const linhasEnunciado = doc.splitTextToSize(questao.enunciado, contentWidth);
+      doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
+      yPosition += linhasEnunciado.length * 3.5 + 2;
 
       // Alternativas
       const letras = ["A", "B", "C", "D"];
       letras.forEach((letra) => {
         if (yPosition > pageHeight - margin - 15) {
+          currentPage++;
           doc.addPage();
-          yPosition = margin;
+          yPosition = renderHeader(currentPage);
+          yPosition += 6;
+          // Rodapé
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "normal");
+          doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
         }
         const texto = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
-        const linhasAlt = doc.splitTextToSize(`(${letra}) ${texto}`, contentWidth - 5);
-        doc.text(linhasAlt, margin + 5, yPosition);
-        yPosition += linhasAlt.length * 4 + 2;
+        const linhasAlt = doc.splitTextToSize(`(${letra}) ${texto}`, contentWidth - 3);
+        doc.text(linhasAlt, margin + 3, yPosition, { align: "justify", maxWidth: contentWidth - 3 });
+        yPosition += linhasAlt.length * 3.5 + 1;
       });
 
-      yPosition += 3;
+      yPosition += 4;
     });
 
-    // Folha de resposta
+    // Gabarito em tabela 25x4
+    currentPage++;
     doc.addPage();
-    yPosition = margin;
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("FOLHA DE RESPOSTA", margin, yPosition);
-    yPosition += 10;
+    yPosition = renderHeader(currentPage);
+    yPosition += 6;
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const questoesPorLinha = 5;
-    for (let i = 0; i < questoesAExportar.length; i += questoesPorLinha) {
-      if (yPosition > pageHeight - margin - 20) {
-        doc.addPage();
-        yPosition = margin;
-      }
-
-      const linhasAntua = Math.min(questoesPorLinha, questoesAExportar.length - i);
-      for (let j = 0; j < linhasAntua; j++) {
-        const questaoNum = i + j + 1;
-        const espacoX = (contentWidth / linhasAntua) * j;
-
-        doc.text(`Q${questaoNum}: ( ) ( ) ( ) ( )`, margin + espacoX, yPosition);
-      }
-      yPosition += 8;
-    }
-
-    // Gabarito
-    doc.addPage();
-    yPosition = margin;
-    doc.setFontSize(14);
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("GABARITO", margin, yPosition);
-    yPosition += 10;
+    yPosition += 8;
 
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    questoesAExportar.forEach((questao, index) => {
-      if (yPosition > pageHeight - margin - 15) {
-        doc.addPage();
-        yPosition = margin;
-      }
 
-      const questaoNum = index + 1;
-      const alternativaCorreta = (questao.alternativas[questao.correta as "A" | "B" | "C" | "D"] || "").substring(0, 60);
-      doc.text(
-        `Q${questaoNum}: ${questao.correta} - ${alternativaCorreta}...`,
-        margin,
-        yPosition
-      );
-      yPosition += 7;
+    const colWidth = contentWidth / 5;
+    const lineHeight = 6;
+    let xPos = margin;
+    let row = 0;
+    let col = 0;
+
+    // Linha 1: Questões 1-25
+    yPosition += 2;
+    questoesAExportar.slice(0, 25).forEach((_, i) => {
+      doc.text(`${i + 1}`, xPos + col * colWidth + 2, yPosition);
+      col++;
+      if (col === 5) {
+        col = 0;
+        yPosition += lineHeight;
+      }
     });
+
+    // Linha 2: Letras 1-25
+    col = 0;
+    questoesAExportar.slice(0, 25).forEach((q) => {
+      doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
+      col++;
+      if (col === 5) {
+        col = 0;
+        yPosition += lineHeight;
+      }
+    });
+
+    // Linha 3: Questões 26-50
+    col = 0;
+    questoesAExportar.slice(25, 50).forEach((_, i) => {
+      doc.text(`${i + 26}`, xPos + col * colWidth + 2, yPosition);
+      col++;
+      if (col === 5) {
+        col = 0;
+        yPosition += lineHeight;
+      }
+    });
+
+    // Linha 4: Letras 26-50
+    col = 0;
+    questoesAExportar.slice(25, 50).forEach((q) => {
+      doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
+      col++;
+      if (col === 5) {
+        col = 0;
+        yPosition += lineHeight;
+      }
+    });
+
+    // Rodapé última página
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${currentPage} de ${currentPage}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
 
     doc.save("simulado-exame-suficiencia.pdf");
   }
