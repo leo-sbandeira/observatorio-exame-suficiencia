@@ -137,12 +137,22 @@ export default function PaginaSimulado() {
     return texto.trim();
   }
 
+  function ordenarPorDistribuicao(questoes: QuestaoSimulado[]): QuestaoSimulado[] {
+    const ordem = Object.keys(DISTRIBUICAO_OFICIAL) as string[];
+    const ordenadas: QuestaoSimulado[] = [];
+
+    for (const conteudo of ordem) {
+      const questoesDoConteudo = questoes.filter(q => q.conteudo === conteudo);
+      ordenadas.push(...questoesDoConteudo);
+    }
+
+    return ordenadas;
+  }
+
   async function gerarSimuladoOficialPDF() {
     const { questoes: todasQuestoes } = gerarSimuladoOficial();
-    const questoesAleatorias = todasQuestoes
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 50);
-    await gerarPDFSimulado(questoesAleatorias, "oficial");
+    const questoesOrdenadas = ordenarPorDistribuicao(todasQuestoes);
+    await gerarPDFSimulado(questoesOrdenadas, "oficial");
   }
 
   async function gerarPDFSimulado(questoesAExportar: QuestaoSimulado[], tipo: "oficial" | "personalizado" = "personalizado") {
@@ -171,7 +181,7 @@ export default function PaginaSimulado() {
       if (logoDataUrl) {
         doc.addImage(logoDataUrl, "PNG", margin, y, 10, 10);
       }
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("Observatório do Exame de Suficiência", margin + 12, y + 6);
       y += 12;
@@ -184,21 +194,25 @@ export default function PaginaSimulado() {
     let yPosition = renderHeader(1);
     yPosition += 6;
 
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("Simulado do Exame de Suficiência", pageWidth / 2, yPosition, { align: "center" });
     yPosition += 10;
 
-    doc.setFontSize(10);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Nome: ___________________________________________________`, margin, yPosition);
-    yPosition += 6;
-    doc.text(`Data: ___________________    Número de Acertos: _____`, margin, yPosition);
+    doc.text("Nome: ", margin, yPosition);
+    doc.line(margin + 16, yPosition + 0.5, pageWidth - margin, yPosition + 0.5);
+    yPosition += 8;
+
+    doc.text("Data: ", margin, yPosition);
+    doc.text("_____/_____/_______", margin + 12, yPosition);
+    doc.text("Número de Acertos: _____", pageWidth - margin - 50, yPosition);
     yPosition += 12;
 
     // Questões
     let currentPage = 1;
-    doc.setFontSize(9);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
 
     questoesAExportar.forEach((questao, index) => {
@@ -218,20 +232,20 @@ export default function PaginaSimulado() {
       }
 
       // Número e metadados da questão
-      doc.setFontSize(8);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(120, 120, 120);
       doc.text(`Questão ${questaoNum}: ${metadados}`, margin, yPosition);
-      yPosition += 4;
+      yPosition += 5;
 
       // Enunciado (justificado)
       const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
-      doc.setFontSize(9);
+      doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 0, 0);
       const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
       doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-      yPosition += linhasEnunciado.length * 3.5 + 2;
+      yPosition += linhasEnunciado.length * 4 + 2;
 
       // Alternativas
       const letras = ["A", "B", "C", "D"];
@@ -242,15 +256,17 @@ export default function PaginaSimulado() {
           yPosition = renderHeader(currentPage);
           yPosition += 6;
           // Rodapé
-          doc.setFontSize(8);
+          doc.setFontSize(12);
           doc.setFont("helvetica", "normal");
           doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
         }
         const textoRaw = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
         const textoLimpo = processarTextoQuestao(textoRaw);
-        const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth - 3);
-        doc.text(linhasAlt, margin + 3, yPosition, { align: "justify", maxWidth: contentWidth - 3 });
-        yPosition += linhasAlt.length * 3.5 + 1;
+        const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(linhasAlt, margin, yPosition, { align: "justify", maxWidth: contentWidth });
+        yPosition += linhasAlt.length * 4 + 1;
       });
 
       yPosition += 4;
@@ -262,66 +278,70 @@ export default function PaginaSimulado() {
     yPosition = renderHeader(currentPage);
     yPosition += 6;
 
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("GABARITO", margin, yPosition);
     yPosition += 8;
 
-    doc.setFontSize(8);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
 
-    const colWidth = contentWidth / 5;
-    const lineHeight = 6;
+    const cellWidth = contentWidth / 25;
+    const cellHeight = 6;
     let xPos = margin;
-    let row = 0;
-    let col = 0;
+    let startY = yPosition;
 
-    // Linha 1: Questões 1-25
-    yPosition += 2;
-    questoesAExportar.slice(0, 25).forEach((_, i) => {
-      doc.text(`${i + 1}`, xPos + col * colWidth + 2, yPosition);
-      col++;
-      if (col === 5) {
-        col = 0;
-        yPosition += lineHeight;
+    // Função para desenhar célula com borda
+    const desenharCelula = (x: number, y: number, width: number, height: number, texto: string, preenchimento: boolean) => {
+      doc.setDrawColor(0, 0, 0);
+      doc.rect(x, y, width, height);
+
+      if (preenchimento) {
+        doc.setFillColor(220, 220, 220);
+        doc.rect(x, y, width, height, "F");
+        doc.setDrawColor(0, 0, 0);
+        doc.rect(x, y, width, height);
       }
-    });
 
-    // Linha 2: Letras 1-25
-    col = 0;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+      doc.text(texto, x + width / 2, y + height / 2, { align: "center", baseline: "middle" });
+    };
+
+    // Linha 1: Números 1-25 (com preenchimento claro)
+    let colX = xPos;
+    for (let i = 0; i < 25; i++) {
+      desenharCelula(colX, startY, cellWidth, cellHeight, `${i + 1}`, true);
+      colX += cellWidth;
+    }
+
+    // Linha 2: Letras 1-25 (sem preenchimento)
+    startY += cellHeight;
+    colX = xPos;
     questoesAExportar.slice(0, 25).forEach((q) => {
-      doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
-      col++;
-      if (col === 5) {
-        col = 0;
-        yPosition += lineHeight;
-      }
+      desenharCelula(colX, startY, cellWidth, cellHeight, q.correta, false);
+      colX += cellWidth;
     });
 
-    // Linha 3: Questões 26-50
-    col = 0;
-    questoesAExportar.slice(25, 50).forEach((_, i) => {
-      doc.text(`${i + 26}`, xPos + col * colWidth + 2, yPosition);
-      col++;
-      if (col === 5) {
-        col = 0;
-        yPosition += lineHeight;
-      }
-    });
+    // Linha 3: Números 26-50 (com preenchimento claro)
+    startY += cellHeight;
+    colX = xPos;
+    for (let i = 0; i < 25; i++) {
+      desenharCelula(colX, startY, cellWidth, cellHeight, `${i + 26}`, true);
+      colX += cellWidth;
+    }
 
-    // Linha 4: Letras 26-50
-    col = 0;
+    // Linha 4: Letras 26-50 (sem preenchimento)
+    startY += cellHeight;
+    colX = xPos;
     questoesAExportar.slice(25, 50).forEach((q) => {
-      doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
-      col++;
-      if (col === 5) {
-        col = 0;
-        yPosition += lineHeight;
-      }
+      desenharCelula(colX, startY, cellWidth, cellHeight, q.correta, false);
+      colX += cellWidth;
     });
 
     // Rodapé última página
-    doc.setFontSize(8);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.text(`${currentPage} de ${currentPage}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
 

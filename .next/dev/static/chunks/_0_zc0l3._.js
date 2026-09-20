@@ -135,10 +135,19 @@ function PaginaSimulado() {
         texto = texto.replace(/\s+/g, " ");
         return texto.trim();
     }
+    function ordenarPorDistribuicao(questoes) {
+        const ordem = Object.keys(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$simulado$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DISTRIBUICAO_OFICIAL"]);
+        const ordenadas = [];
+        for (const conteudo of ordem){
+            const questoesDoConteudo = questoes.filter((q)=>q.conteudo === conteudo);
+            ordenadas.push(...questoesDoConteudo);
+        }
+        return ordenadas;
+    }
     async function gerarSimuladoOficialPDF() {
         const { questoes: todasQuestoes } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$simulado$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gerarSimuladoOficial"])();
-        const questoesAleatorias = todasQuestoes.sort(()=>Math.random() - 0.5).slice(0, 50);
-        await gerarPDFSimulado(questoesAleatorias, "oficial");
+        const questoesOrdenadas = ordenarPorDistribuicao(todasQuestoes);
+        await gerarPDFSimulado(questoesOrdenadas, "oficial");
     }
     async function gerarPDFSimulado(questoesAExportar, tipo = "personalizado") {
         const doc = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jspdf$2f$dist$2f$jspdf$2e$es$2e$min$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsPDF"]();
@@ -164,7 +173,7 @@ function PaginaSimulado() {
             if (logoDataUrl) {
                 doc.addImage(logoDataUrl, "PNG", margin, y, 10, 10);
             }
-            doc.setFontSize(11);
+            doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.text("Observatório do Exame de Suficiência", margin + 12, y + 6);
             y += 12;
@@ -175,21 +184,24 @@ function PaginaSimulado() {
         // Primeira página com informações do candidato
         let yPosition = renderHeader(1);
         yPosition += 6;
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("Simulado do Exame de Suficiência", pageWidth / 2, yPosition, {
             align: "center"
         });
         yPosition += 10;
-        doc.setFontSize(10);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        doc.text(`Nome: ___________________________________________________`, margin, yPosition);
-        yPosition += 6;
-        doc.text(`Data: ___________________    Número de Acertos: _____`, margin, yPosition);
+        doc.text("Nome: ", margin, yPosition);
+        doc.line(margin + 16, yPosition + 0.5, pageWidth - margin, yPosition + 0.5);
+        yPosition += 8;
+        doc.text("Data: ", margin, yPosition);
+        doc.text("_____/_____/_______", margin + 12, yPosition);
+        doc.text("Número de Acertos: _____", pageWidth - margin - 50, yPosition);
         yPosition += 12;
         // Questões
         let currentPage = 1;
-        doc.setFontSize(9);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         questoesAExportar.forEach((questao, index)=>{
             const questaoNum = index + 1;
@@ -208,14 +220,14 @@ function PaginaSimulado() {
                 });
             }
             // Número e metadados da questão
-            doc.setFontSize(8);
+            doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(120, 120, 120);
             doc.text(`Questão ${questaoNum}: ${metadados}`, margin, yPosition);
-            yPosition += 4;
+            yPosition += 5;
             // Enunciado (justificado)
             const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
-            doc.setFontSize(9);
+            doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(0, 0, 0);
             const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
@@ -223,7 +235,7 @@ function PaginaSimulado() {
                 align: "justify",
                 maxWidth: contentWidth
             });
-            yPosition += linhasEnunciado.length * 3.5 + 2;
+            yPosition += linhasEnunciado.length * 4 + 2;
             // Alternativas
             const letras = [
                 "A",
@@ -238,7 +250,7 @@ function PaginaSimulado() {
                     yPosition = renderHeader(currentPage);
                     yPosition += 6;
                     // Rodapé
-                    doc.setFontSize(8);
+                    doc.setFontSize(12);
                     doc.setFont("helvetica", "normal");
                     doc.text(`${currentPage - 1} de ${Math.ceil(questoesAExportar.length / 4 + 2)}`, pageWidth - margin - 10, pageHeight - 8, {
                         align: "right"
@@ -246,12 +258,14 @@ function PaginaSimulado() {
                 }
                 const textoRaw = questao.alternativas[letra] || "";
                 const textoLimpo = processarTextoQuestao(textoRaw);
-                const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth - 3);
-                doc.text(linhasAlt, margin + 3, yPosition, {
+                const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.text(linhasAlt, margin, yPosition, {
                     align: "justify",
-                    maxWidth: contentWidth - 3
+                    maxWidth: contentWidth
                 });
-                yPosition += linhasAlt.length * 3.5 + 1;
+                yPosition += linhasAlt.length * 4 + 1;
             });
             yPosition += 4;
         });
@@ -260,59 +274,63 @@ function PaginaSimulado() {
         doc.addPage();
         yPosition = renderHeader(currentPage);
         yPosition += 6;
-        doc.setFontSize(11);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("GABARITO", margin, yPosition);
         yPosition += 8;
-        doc.setFontSize(8);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        const colWidth = contentWidth / 5;
-        const lineHeight = 6;
+        const cellWidth = contentWidth / 25;
+        const cellHeight = 6;
         let xPos = margin;
-        let row = 0;
-        let col = 0;
-        // Linha 1: Questões 1-25
-        yPosition += 2;
-        questoesAExportar.slice(0, 25).forEach((_, i)=>{
-            doc.text(`${i + 1}`, xPos + col * colWidth + 2, yPosition);
-            col++;
-            if (col === 5) {
-                col = 0;
-                yPosition += lineHeight;
+        let startY = yPosition;
+        // Função para desenhar célula com borda
+        const desenharCelula = (x, y, width, height, texto, preenchimento)=>{
+            doc.setDrawColor(0, 0, 0);
+            doc.rect(x, y, width, height);
+            if (preenchimento) {
+                doc.setFillColor(220, 220, 220);
+                doc.rect(x, y, width, height, "F");
+                doc.setDrawColor(0, 0, 0);
+                doc.rect(x, y, width, height);
             }
-        });
-        // Linha 2: Letras 1-25
-        col = 0;
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0);
+            doc.text(texto, x + width / 2, y + height / 2, {
+                align: "center",
+                baseline: "middle"
+            });
+        };
+        // Linha 1: Números 1-25 (com preenchimento claro)
+        let colX = xPos;
+        for(let i = 0; i < 25; i++){
+            desenharCelula(colX, startY, cellWidth, cellHeight, `${i + 1}`, true);
+            colX += cellWidth;
+        }
+        // Linha 2: Letras 1-25 (sem preenchimento)
+        startY += cellHeight;
+        colX = xPos;
         questoesAExportar.slice(0, 25).forEach((q)=>{
-            doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
-            col++;
-            if (col === 5) {
-                col = 0;
-                yPosition += lineHeight;
-            }
+            desenharCelula(colX, startY, cellWidth, cellHeight, q.correta, false);
+            colX += cellWidth;
         });
-        // Linha 3: Questões 26-50
-        col = 0;
-        questoesAExportar.slice(25, 50).forEach((_, i)=>{
-            doc.text(`${i + 26}`, xPos + col * colWidth + 2, yPosition);
-            col++;
-            if (col === 5) {
-                col = 0;
-                yPosition += lineHeight;
-            }
-        });
-        // Linha 4: Letras 26-50
-        col = 0;
+        // Linha 3: Números 26-50 (com preenchimento claro)
+        startY += cellHeight;
+        colX = xPos;
+        for(let i = 0; i < 25; i++){
+            desenharCelula(colX, startY, cellWidth, cellHeight, `${i + 26}`, true);
+            colX += cellWidth;
+        }
+        // Linha 4: Letras 26-50 (sem preenchimento)
+        startY += cellHeight;
+        colX = xPos;
         questoesAExportar.slice(25, 50).forEach((q)=>{
-            doc.text(q.correta, xPos + col * colWidth + 2, yPosition);
-            col++;
-            if (col === 5) {
-                col = 0;
-                yPosition += lineHeight;
-            }
+            desenharCelula(colX, startY, cellWidth, cellHeight, q.correta, false);
+            colX += cellWidth;
         });
         // Rodapé última página
-        doc.setFontSize(8);
+        doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         doc.text(`${currentPage} de ${currentPage}`, pageWidth - margin - 10, pageHeight - 8, {
             align: "right"
@@ -372,7 +390,7 @@ function PaginaSimulado() {
                                     children: "Simulado — Exame de Suficiência"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 380,
+                                    lineNumber: 400,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -383,13 +401,13 @@ function PaginaSimulado() {
                                     children: "Provas e Gabaritos"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 381,
+                                    lineNumber: 401,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 379,
+                            lineNumber: 399,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -397,13 +415,13 @@ function PaginaSimulado() {
                             children: "Pratique com questões de provas anteriores da FGV (2024.1 a 2026.1)."
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 390,
+                            lineNumber: 410,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 378,
+                    lineNumber: 398,
                     columnNumber: 9
                 }, this),
                 estatisticas && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -417,7 +435,7 @@ function PaginaSimulado() {
                                     children: "Simulados Oficiais Realizados"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 400,
+                                    lineNumber: 420,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -430,84 +448,12 @@ function PaginaSimulado() {
                                                     children: "n"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 403,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-blue-900",
-                                                    children: estatisticas.simuladosOficiais.total
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 404,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 402,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-blue-700",
-                                                    children: "Média"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 407,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-blue-900",
-                                                    children: estatisticas.simuladosOficiais.media !== null ? `${estatisticas.simuladosOficiais.media.toFixed(1)}%` : "—"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 408,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 406,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-blue-700",
-                                                    children: "Maior"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 415,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-blue-900",
-                                                    children: estatisticas.simuladosOficiais.maior !== null ? `${estatisticas.simuladosOficiais.maior.toFixed(1)}%` : "—"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 416,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 414,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-blue-700",
-                                                    children: "Menor"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
                                                     lineNumber: 423,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-lg font-bold text-blue-900",
-                                                    children: estatisticas.simuladosOficiais.menor !== null ? `${estatisticas.simuladosOficiais.menor.toFixed(1)}%` : "—"
+                                                    children: estatisticas.simuladosOficiais.total
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
                                                     lineNumber: 424,
@@ -518,17 +464,89 @@ function PaginaSimulado() {
                                             fileName: "[project]/app/simulado/page.tsx",
                                             lineNumber: 422,
                                             columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-blue-700",
+                                                    children: "Média"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 427,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-blue-900",
+                                                    children: estatisticas.simuladosOficiais.media !== null ? `${estatisticas.simuladosOficiais.media.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 428,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 426,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-blue-700",
+                                                    children: "Maior"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 435,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-blue-900",
+                                                    children: estatisticas.simuladosOficiais.maior !== null ? `${estatisticas.simuladosOficiais.maior.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 436,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 434,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-blue-700",
+                                                    children: "Menor"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 443,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-blue-900",
+                                                    children: estatisticas.simuladosOficiais.menor !== null ? `${estatisticas.simuladosOficiais.menor.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 444,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 442,
+                                            columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 401,
+                                    lineNumber: 421,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 399,
+                            lineNumber: 419,
                             columnNumber: 15
                         }, this),
                         estatisticas.simuladosPersonalizados.total > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -539,7 +557,7 @@ function PaginaSimulado() {
                                     children: "Simulados Personalizados Realizados"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 437,
+                                    lineNumber: 457,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -552,84 +570,12 @@ function PaginaSimulado() {
                                                     children: "n"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 440,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-slate-900",
-                                                    children: estatisticas.simuladosPersonalizados.total
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 441,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 439,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-slate-500",
-                                                    children: "Média"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 444,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-slate-900",
-                                                    children: estatisticas.simuladosPersonalizados.media !== null ? `${estatisticas.simuladosPersonalizados.media.toFixed(1)}%` : "—"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 445,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 443,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-slate-500",
-                                                    children: "Maior"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 452,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-lg font-bold text-slate-900",
-                                                    children: estatisticas.simuladosPersonalizados.maior !== null ? `${estatisticas.simuladosPersonalizados.maior.toFixed(1)}%` : "—"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 453,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 451,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs text-slate-500",
-                                                    children: "Menor"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/app/simulado/page.tsx",
                                                     lineNumber: 460,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-lg font-bold text-slate-900",
-                                                    children: estatisticas.simuladosPersonalizados.menor !== null ? `${estatisticas.simuladosPersonalizados.menor.toFixed(1)}%` : "—"
+                                                    children: estatisticas.simuladosPersonalizados.total
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
                                                     lineNumber: 461,
@@ -640,11 +586,83 @@ function PaginaSimulado() {
                                             fileName: "[project]/app/simulado/page.tsx",
                                             lineNumber: 459,
                                             columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-slate-500",
+                                                    children: "Média"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 464,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-slate-900",
+                                                    children: estatisticas.simuladosPersonalizados.media !== null ? `${estatisticas.simuladosPersonalizados.media.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 465,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 463,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-slate-500",
+                                                    children: "Maior"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 472,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-slate-900",
+                                                    children: estatisticas.simuladosPersonalizados.maior !== null ? `${estatisticas.simuladosPersonalizados.maior.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 473,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 471,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs text-slate-500",
+                                                    children: "Menor"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 480,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-lg font-bold text-slate-900",
+                                                    children: estatisticas.simuladosPersonalizados.menor !== null ? `${estatisticas.simuladosPersonalizados.menor.toFixed(1)}%` : "—"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/simulado/page.tsx",
+                                                    lineNumber: 481,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/simulado/page.tsx",
+                                            lineNumber: 479,
+                                            columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 438,
+                                    lineNumber: 458,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -657,7 +675,7 @@ function PaginaSimulado() {
                                                     children: "Edições Simuladas (top 3)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 472,
+                                                    lineNumber: 492,
                                                     columnNumber: 21
                                                 }, this),
                                                 estatisticas.simuladosPersonalizados.edicoes.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -667,25 +685,25 @@ function PaginaSimulado() {
                                                             children: ed
                                                         }, ed, false, {
                                                             fileName: "[project]/app/simulado/page.tsx",
-                                                            lineNumber: 476,
+                                                            lineNumber: 496,
                                                             columnNumber: 27
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 474,
+                                                    lineNumber: 494,
                                                     columnNumber: 23
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-xs text-slate-500",
                                                     children: "—"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 480,
+                                                    lineNumber: 500,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 471,
+                                            lineNumber: 491,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -695,7 +713,7 @@ function PaginaSimulado() {
                                                     children: "Conteúdos Simulados (top 3)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 484,
+                                                    lineNumber: 504,
                                                     columnNumber: 21
                                                 }, this),
                                                 estatisticas.simuladosPersonalizados.conteudos.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -705,43 +723,43 @@ function PaginaSimulado() {
                                                             children: cont
                                                         }, cont, false, {
                                                             fileName: "[project]/app/simulado/page.tsx",
-                                                            lineNumber: 488,
+                                                            lineNumber: 508,
                                                             columnNumber: 27
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 486,
+                                                    lineNumber: 506,
                                                     columnNumber: 23
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-xs text-slate-500",
                                                     children: "—"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 492,
+                                                    lineNumber: 512,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 483,
+                                            lineNumber: 503,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 470,
+                                    lineNumber: 490,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 436,
+                            lineNumber: 456,
                             columnNumber: 15
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 396,
+                    lineNumber: 416,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -752,7 +770,7 @@ function PaginaSimulado() {
                             children: "Simulado oficial (50 questões)"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 502,
+                            lineNumber: 522,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -760,7 +778,7 @@ function PaginaSimulado() {
                             children: "Gera um simulado completo considerando essa distribuição por área de conteúdo: Contabilidade Geral (17), Princípios de Contabilidade e NBCs (5), Contabilidade Gerencial (4), Teoria da Contabilidade (4), Contabilidade Aplicada ao Setor Público (3), Noções de Direito e Legislação Aplicada (3), Legislação e Ética Profissional (3), Contabilidade de Custos (2), Auditoria Contábil (2), Língua Portuguesa Aplicada (2), Matemática Financeira e Estatística (2), Perícia Contábil (2), Controladoria (1)."
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 503,
+                            lineNumber: 523,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -772,7 +790,7 @@ function PaginaSimulado() {
                                     children: "Gerar Simulado Online"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 514,
+                                    lineNumber: 534,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -781,19 +799,19 @@ function PaginaSimulado() {
                                     children: "Gerar Simulado Impresso"
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 520,
+                                    lineNumber: 540,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 513,
+                            lineNumber: 533,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 501,
+                    lineNumber: 521,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -804,7 +822,7 @@ function PaginaSimulado() {
                             children: "Simulado personalizado"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 530,
+                            lineNumber: 550,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -812,7 +830,7 @@ function PaginaSimulado() {
                             children: "Escolha os filtros e a quantidade de questões."
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 531,
+                            lineNumber: 551,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -825,7 +843,7 @@ function PaginaSimulado() {
                                     onChange: setBancasFiltro
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 535,
+                                    lineNumber: 555,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$MultiSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -835,7 +853,7 @@ function PaginaSimulado() {
                                     onChange: setEdicoesFiltro
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 541,
+                                    lineNumber: 561,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$MultiSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -848,7 +866,7 @@ function PaginaSimulado() {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 547,
+                                    lineNumber: 567,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$MultiSelect$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -858,13 +876,13 @@ function PaginaSimulado() {
                                     onChange: setAssuntosFiltro
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 556,
+                                    lineNumber: 576,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 534,
+                            lineNumber: 554,
                             columnNumber: 11
                         }, this),
                         (bancasFiltro.length > 0 || edicoesFiltro.length > 0) && conteudosFiltro.length === 0 && assuntosFiltro.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -877,7 +895,7 @@ function PaginaSimulado() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 566,
+                            lineNumber: 586,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "mt-4 flex flex-col sm:flex-row sm:items-center gap-3",
@@ -895,13 +913,13 @@ function PaginaSimulado() {
                                             className: "w-16 sm:w-20 rounded-md border border-slate-300 px-2 py-1 text-sm"
                                         }, void 0, false, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 576,
+                                            lineNumber: 596,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 574,
+                                    lineNumber: 594,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -912,13 +930,13 @@ function PaginaSimulado() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 585,
+                                    lineNumber: 605,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 573,
+                            lineNumber: 593,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -928,19 +946,19 @@ function PaginaSimulado() {
                             children: "Gerar Simulado Personalizado"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 590,
+                            lineNumber: 610,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 529,
+                    lineNumber: 549,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/simulado/page.tsx",
-            lineNumber: 377,
+            lineNumber: 397,
             columnNumber: 7
         }, this);
     }
@@ -957,12 +975,12 @@ function PaginaSimulado() {
                             children: a
                         }, a, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 611,
+                            lineNumber: 631,
                             columnNumber: 15
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 609,
+                    lineNumber: 629,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -981,7 +999,7 @@ function PaginaSimulado() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 616,
+                            lineNumber: 636,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -990,13 +1008,13 @@ function PaginaSimulado() {
                             children: "Finalizar simulado"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 619,
+                            lineNumber: 639,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 615,
+                    lineNumber: 635,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1009,17 +1027,17 @@ function PaginaSimulado() {
                                 children: i + 1
                             }, qq.id, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 630,
+                                lineNumber: 650,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 628,
+                        lineNumber: 648,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 627,
+                    lineNumber: 647,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1032,7 +1050,7 @@ function PaginaSimulado() {
                             children: "Anterior"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 648,
+                            lineNumber: 668,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1042,13 +1060,13 @@ function PaginaSimulado() {
                             children: "Próxima"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 655,
+                            lineNumber: 675,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 647,
+                    lineNumber: 667,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1067,14 +1085,14 @@ function PaginaSimulado() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 665,
+                            lineNumber: 685,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$RenderizadorQuestao$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                             texto: q.enunciado
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 668,
+                            lineNumber: 688,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1090,7 +1108,7 @@ function PaginaSimulado() {
                                             className: "mt-1"
                                         }, void 0, false, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 679,
+                                            lineNumber: 699,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1104,7 +1122,7 @@ function PaginaSimulado() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 687,
+                                                    lineNumber: 707,
                                                     columnNumber: 19
                                                 }, this),
                                                 " ",
@@ -1113,36 +1131,36 @@ function PaginaSimulado() {
                                                     compacto: true
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 688,
+                                                    lineNumber: 708,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 686,
+                                            lineNumber: 706,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, letra, true, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 671,
+                                    lineNumber: 691,
                                     columnNumber: 15
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 669,
+                            lineNumber: 689,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/simulado/page.tsx",
-                    lineNumber: 664,
+                    lineNumber: 684,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/simulado/page.tsx",
-            lineNumber: 607,
+            lineNumber: 627,
             columnNumber: 7
         }, this);
     }
@@ -1173,12 +1191,12 @@ function PaginaSimulado() {
                             children: "Resultado do Simulado"
                         }, void 0, false, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 716,
+                            lineNumber: 736,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 715,
+                        lineNumber: 735,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1187,13 +1205,13 @@ function PaginaSimulado() {
                         children: "Exportar PDF"
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 718,
+                        lineNumber: 738,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/simulado/page.tsx",
-                lineNumber: 714,
+                lineNumber: 734,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1207,7 +1225,7 @@ function PaginaSimulado() {
                                 children: "Acertos"
                             }, void 0, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 728,
+                                lineNumber: 748,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1215,13 +1233,13 @@ function PaginaSimulado() {
                                 children: acertos
                             }, void 0, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 729,
+                                lineNumber: 749,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 727,
+                        lineNumber: 747,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1232,7 +1250,7 @@ function PaginaSimulado() {
                                 children: "Erros"
                             }, void 0, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 732,
+                                lineNumber: 752,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1240,13 +1258,13 @@ function PaginaSimulado() {
                                 children: erros
                             }, void 0, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 733,
+                                lineNumber: 753,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 731,
+                        lineNumber: 751,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1257,7 +1275,7 @@ function PaginaSimulado() {
                                 children: "Aproveitamento"
                             }, void 0, false, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 736,
+                                lineNumber: 756,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1268,19 +1286,19 @@ function PaginaSimulado() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 737,
+                                lineNumber: 757,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 735,
+                        lineNumber: 755,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/simulado/page.tsx",
-                lineNumber: 726,
+                lineNumber: 746,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1291,7 +1309,7 @@ function PaginaSimulado() {
                         children: "Desempenho por conteúdo"
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 742,
+                        lineNumber: 762,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1308,7 +1326,7 @@ function PaginaSimulado() {
                                                 children: "Conteúdo"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 747,
+                                                lineNumber: 767,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1316,7 +1334,7 @@ function PaginaSimulado() {
                                                 children: "Acertos"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 748,
+                                                lineNumber: 768,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1324,7 +1342,7 @@ function PaginaSimulado() {
                                                 children: "Total"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 749,
+                                                lineNumber: 769,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1332,18 +1350,18 @@ function PaginaSimulado() {
                                                 children: "% Acerto"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 750,
+                                                lineNumber: 770,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/simulado/page.tsx",
-                                        lineNumber: 746,
+                                        lineNumber: 766,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 745,
+                                    lineNumber: 765,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -1355,7 +1373,7 @@ function PaginaSimulado() {
                                                     children: conteudo
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 758,
+                                                    lineNumber: 778,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -1363,7 +1381,7 @@ function PaginaSimulado() {
                                                     children: v.acertos
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 759,
+                                                    lineNumber: 779,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -1371,7 +1389,7 @@ function PaginaSimulado() {
                                                     children: v.total
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 760,
+                                                    lineNumber: 780,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -1382,35 +1400,35 @@ function PaginaSimulado() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                    lineNumber: 761,
+                                                    lineNumber: 781,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, conteudo, true, {
                                             fileName: "[project]/app/simulado/page.tsx",
-                                            lineNumber: 757,
+                                            lineNumber: 777,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/app/simulado/page.tsx",
-                                    lineNumber: 753,
+                                    lineNumber: 773,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/simulado/page.tsx",
-                            lineNumber: 744,
+                            lineNumber: 764,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 743,
+                        lineNumber: 763,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/simulado/page.tsx",
-                lineNumber: 741,
+                lineNumber: 761,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1421,7 +1439,7 @@ function PaginaSimulado() {
                         children: "Revisão questão a questão"
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 772,
+                        lineNumber: 792,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1457,13 +1475,13 @@ function PaginaSimulado() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 788,
+                                                lineNumber: 808,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/simulado/page.tsx",
-                                        lineNumber: 784,
+                                        lineNumber: 804,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1474,7 +1492,7 @@ function PaginaSimulado() {
                                                 corClasse: "text-slate-700"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 794,
+                                                lineNumber: 814,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1493,7 +1511,7 @@ function PaginaSimulado() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                                lineNumber: 806,
+                                                                lineNumber: 826,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1504,48 +1522,48 @@ function PaginaSimulado() {
                                                                     corClasse: cor
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/simulado/page.tsx",
-                                                                    lineNumber: 808,
+                                                                    lineNumber: 828,
                                                                     columnNumber: 31
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                                lineNumber: 807,
+                                                                lineNumber: 827,
                                                                 columnNumber: 29
                                                             }, this)
                                                         ]
                                                     }, letra, true, {
                                                         fileName: "[project]/app/simulado/page.tsx",
-                                                        lineNumber: 805,
+                                                        lineNumber: 825,
                                                         columnNumber: 27
                                                     }, this);
                                                 })
                                             }, void 0, false, {
                                                 fileName: "[project]/app/simulado/page.tsx",
-                                                lineNumber: 795,
+                                                lineNumber: 815,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/simulado/page.tsx",
-                                        lineNumber: 793,
+                                        lineNumber: 813,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, q.id, true, {
                                 fileName: "[project]/app/simulado/page.tsx",
-                                lineNumber: 778,
+                                lineNumber: 798,
                                 columnNumber: 15
                             }, this);
                         })
                     }, void 0, false, {
                         fileName: "[project]/app/simulado/page.tsx",
-                        lineNumber: 773,
+                        lineNumber: 793,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/simulado/page.tsx",
-                lineNumber: 771,
+                lineNumber: 791,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1554,13 +1572,13 @@ function PaginaSimulado() {
                 children: "Fazer outro simulado"
             }, void 0, false, {
                 fileName: "[project]/app/simulado/page.tsx",
-                lineNumber: 822,
+                lineNumber: 842,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/simulado/page.tsx",
-        lineNumber: 713,
+        lineNumber: 733,
         columnNumber: 5
     }, this);
 }
