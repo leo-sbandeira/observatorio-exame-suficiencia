@@ -116,7 +116,7 @@ export default function PaginaSimulado() {
     setRespostas({});
   }
 
-  function exportarPDF() {
+  function gerarPDFSimulado(questoesAExportar: QuestaoSimulado[]) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -125,22 +125,24 @@ export default function PaginaSimulado() {
     let yPosition = margin;
 
     // Cabeçalho
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin, yPosition);
-    yPosition += 8;
+    doc.text("[LOGO]", margin, yPosition);
+    doc.setFontSize(16);
+    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin + 20, yPosition);
+    yPosition += 12;
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     const dataHoje = new Date().toLocaleDateString("pt-BR");
     doc.text(`Data: ${dataHoje}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Total de questões: ${questoes.length}`, margin, yPosition);
+    doc.text(`Total de questões: ${questoesAExportar.length}`, margin, yPosition);
     yPosition += 10;
 
     // Questões
     doc.setFontSize(11);
-    questoes.forEach((questao, index) => {
+    questoesAExportar.forEach((questao, index) => {
       const questaoNum = index + 1;
 
       if (yPosition > pageHeight - margin - 30) {
@@ -185,13 +187,13 @@ export default function PaginaSimulado() {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     const questoesPorLinha = 5;
-    for (let i = 0; i < questoes.length; i += questoesPorLinha) {
+    for (let i = 0; i < questoesAExportar.length; i += questoesPorLinha) {
       if (yPosition > pageHeight - margin - 20) {
         doc.addPage();
         yPosition = margin;
       }
 
-      const linhasAntua = Math.min(questoesPorLinha, questoes.length - i);
+      const linhasAntua = Math.min(questoesPorLinha, questoesAExportar.length - i);
       for (let j = 0; j < linhasAntua; j++) {
         const questaoNum = i + j + 1;
         const espacoX = (contentWidth / linhasAntua) * j;
@@ -211,7 +213,7 @@ export default function PaginaSimulado() {
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    questoes.forEach((questao, index) => {
+    questoesAExportar.forEach((questao, index) => {
       if (yPosition > pageHeight - margin - 15) {
         doc.addPage();
         yPosition = margin;
@@ -546,7 +548,7 @@ export default function PaginaSimulado() {
           <h1 className="text-2xl font-bold">Resultado do Simulado</h1>
         </div>
         <button
-          onClick={exportarPDF}
+          onClick={() => gerarPDFSimulado(questoes)}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
           Exportar PDF
