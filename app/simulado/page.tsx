@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MultiSelect from "@/components/MultiSelect";
 import RenderizadorQuestao from "@/components/RenderizadorQuestao";
 import {
@@ -35,6 +35,20 @@ export default function PaginaSimulado() {
   const [respostas, setRespostas] = useState<Record<number, Letra>>({});
   const [indiceAtual, setIndiceAtual] = useState(0);
   const [avisos, setAvisos] = useState<string[]>([]);
+  const [estatisticas, setEstatisticas] = useState<{
+    totalSimulados: number;
+    mediaAcertos: number | null;
+    edicaoMaisFeita: string | null;
+    bancaMaisFeita: string | null;
+    conteudoMaisFeito: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/simulado/estatisticas")
+      .then((r) => r.json())
+      .then(setEstatisticas)
+      .catch(() => {});
+  }, []);
 
   const bancas = useMemo(() => listarBancas(), []);
   const edicoes = useMemo(() => listarEdicoes(), []);
@@ -64,7 +78,7 @@ export default function PaginaSimulado() {
     setRespostas({});
     setIndiceAtual(0);
     setFase("prova");
-    registrarInicio("personalizado");
+    registrarInicio("personalizado", geradas);
   }
 
   function iniciarOficial() {
@@ -74,7 +88,7 @@ export default function PaginaSimulado() {
     setRespostas({});
     setIndiceAtual(0);
     setFase("prova");
-    registrarInicio("oficial");
+    registrarInicio("oficial", geradas);
   }
 
   function responder(letra: Letra) {
@@ -82,6 +96,10 @@ export default function PaginaSimulado() {
   }
 
   function finalizar() {
+    const total = questoes.length;
+    const acertos = questoes.filter((q) => respostas[q.id] === q.correta).length;
+    const percentual = total ? (acertos / total) * 100 : 0;
+    registrarFim(questoes, acertos, total, percentual);
     setFase("resultado");
   }
 
@@ -91,13 +109,44 @@ export default function PaginaSimulado() {
     setRespostas({});
   }
 
-  function registrarInicio(modo: "oficial" | "personalizado") {
+  function valoresUnicos(lista: QuestaoSimulado[], chave: "edicao" | "banca" | "conteudo") {
+    return Array.from(new Set(lista.map((q) => q[chave]))).join(", ");
+  }
+
+  function registrarInicio(modo: "oficial" | "personalizado", lista: QuestaoSimulado[]) {
     // A localização (estado/cidade) é resolvida no servidor, a partir do IP
     // da requisição — nenhum dado é pedido ou coletado no navegador.
     fetch("/api/simulado/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ modo }),
+      body: JSON.stringify({
+        evento: "inicio",
+        modo,
+        edicoes: valoresUnicos(lista, "edicao"),
+        bancas: valoresUnicos(lista, "banca"),
+        conteudos: valoresUnicos(lista, "conteudo"),
+      }),
+    }).catch(() => {});
+  }
+
+  function registrarFim(
+    lista: QuestaoSimulado[],
+    acertos: number,
+    total: number,
+    percentual: number
+  ) {
+    fetch("/api/simulado/registro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evento: "fim",
+        edicoes: valoresUnicos(lista, "edicao"),
+        bancas: valoresUnicos(lista, "banca"),
+        conteudos: valoresUnicos(lista, "conteudo"),
+        acertos,
+        total,
+        percentual: percentual.toFixed(1),
+      }),
     }).catch(() => {});
   }
 
@@ -106,12 +155,56 @@ export default function PaginaSimulado() {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">Simulado — Exame de Suficiência</h1>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h1 className="text-2xl font-bold">Simulado — Exame de Suficiência</h1>
+            <a
+              href="https://drive.google.com/drive/folders/1ysMmE_ld3ix9hXfvPH6FRXHDSqCaaaID?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 underline"
+            >
+              [provas e gabaritos]
+            </a>
+          </div>
           <p className="text-sm text-slate-500">
             Pratique com questões de provas anteriores da FGV (2024.1 a
             2026.1) e da Consuplan (2021.1 a 2023.2).
           </p>
         </div>
+
+        {estatisticas && estatisticas.totalSimulados > 0 && (
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4">
+            <div>
+              <p className="text-xs text-slate-400">Simulados realizados</p>
+              <p className="text-lg font-bold text-slate-900">
+                {estatisticas.totalSimulados}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Média de acertos</p>
+              <p className="text-lg font-bold text-slate-900">
+                {estatisticas.mediaAcertos !== null
+                  ? `${estatisticas.mediaAcertos.toFixed(1)}%`
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Edição mais feita</p>
+              <p className="text-lg font-bold text-slate-900">
+                {estatisticas.edicaoMaisFeita ?? "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Banca / Conteúdo mais feitos</p>
+              <p className="text-sm font-semibold text-slate-900">
+                {estatisticas.bancaMaisFeita ?? "—"}
+                {estatisticas.conteudoMaisFeito
+                  ? ` · ${estatisticas.conteudoMaisFeito}`
+                  : ""}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
           <h2 className="font-semibold text-blue-900">Simulado oficial (50 questões)</h2>

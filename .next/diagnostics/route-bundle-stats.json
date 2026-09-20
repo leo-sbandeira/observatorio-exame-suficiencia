@@ -1,12 +1,12 @@
 [
   {
     "route": "/simulado",
-    "firstLoadUncompressedJsBytes": 1247851,
+    "firstLoadUncompressedJsBytes": 1249919,
     "firstLoadChunkPaths": [
       ".next/static/chunks/3fntmmi971322.js",
       ".next/static/chunks/3gvmzu83cesrh.js",
       ".next/static/chunks/2383yzq_9r45q.js",
-      ".next/static/chunks/2zy-lwv0zia6z.js",
+      ".next/static/chunks/28npqhx8tcx89.js",
       ".next/static/chunks/0jvhpaew_uadu.js",
       ".next/static/chunks/2tswzwt7g9k6a.js",
       ".next/static/chunks/05tem0visqf24.js",
@@ -37,7 +37,7 @@
       ".next/static/chunks/3gvmzu83cesrh.js",
       ".next/static/chunks/2383yzq_9r45q.js",
       ".next/static/chunks/1r5d9p89j5y4z.js",
-      ".next/static/chunks/3vetd-9-bos2f.js",
+      ".next/static/chunks/2zigwk599k6uj.js",
       ".next/static/chunks/0jvhpaew_uadu.js",
       ".next/static/chunks/2tswzwt7g9k6a.js",
       ".next/static/chunks/05tem0visqf24.js",

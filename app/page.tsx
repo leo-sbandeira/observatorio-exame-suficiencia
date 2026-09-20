@@ -420,7 +420,7 @@ export default function Home() {
         </p>
         <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
           <p>
-            Das edições de 2011.1 a 2025.2 tem-se os resultados estatísticos
+            Das edições de 2011.1 a 2026.1 tem-se os resultados estatísticos
             gerais e por UF (Unidade da Federação), que foram integrados na
             base. Esses dados referem-se ao número e percentuais de
             inscritos, presentes, ausentes, aprovados e reprovados.
