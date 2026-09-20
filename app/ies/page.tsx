@@ -312,7 +312,7 @@ export default function PaginaIES() {
               {estatisticas.iesMaisBuscadas.length > 0 ? (
                 <div className="space-y-1">
                   {estatisticas.iesMaisBuscadas.map((ies) => (
-                    <p key={ies} className="text-xs text-slate-900 break-words">
+                    <p key={ies} className="text-xs text-slate-900 whitespace-nowrap">
                       {ies}
                     </p>
                   ))}
