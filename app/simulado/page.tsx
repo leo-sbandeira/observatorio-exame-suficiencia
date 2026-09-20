@@ -236,7 +236,7 @@ export default function PaginaSimulado() {
       doc.setFont("helvetica", "normal");
       doc.setTextColor(120, 120, 120);
       doc.text(`Questão ${questaoNum}: ${metadados}`, margin, yPosition);
-      yPosition += 5;
+      yPosition += 6;
 
       // Enunciado (justificado)
       const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
@@ -245,12 +245,12 @@ export default function PaginaSimulado() {
       doc.setTextColor(0, 0, 0);
       const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
       doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-      yPosition += linhasEnunciado.length * 4 + 2;
+      yPosition += linhasEnunciado.length * 5.5 + 4;
 
       // Alternativas
       const letras = ["A", "B", "C", "D"];
       letras.forEach((letra) => {
-        if (yPosition > pageHeight - margin - 15) {
+        if (yPosition > pageHeight - margin - 20) {
           currentPage++;
           doc.addPage();
           yPosition = renderHeader(currentPage);
@@ -266,10 +266,10 @@ export default function PaginaSimulado() {
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         doc.text(linhasAlt, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-        yPosition += linhasAlt.length * 4 + 1;
+        yPosition += linhasAlt.length * 5.5 + 2;
       });
 
-      yPosition += 4;
+      yPosition += 6;
     });
 
     // Gabarito em tabela 25x4
