@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Resultado {
   id: string;
@@ -21,52 +20,12 @@ const Simulado = () => {
 
   const [resultados, setResultados] = useState<Resultado[]>([]);
   const [pesquisaAtivada, setPesquisaAtivada] = useState(false);
-  const [estatisticas, setEstatisticas] = useState({
-    edicoesPesquisadas: [] as string[],
-    ufsPesquisadas: [] as string[],
-    iesPesquisadas: [] as string[]
-  });
 
-  const atualizarEstatisticas = (dados: Resultado[]) => {
-    const contagemEdicao = dados.reduce((acc: Record<string, number>, curr: Resultado) => {
-      acc[curr.edicao] = (acc[curr.edicao] || 0) + 1;
-      return acc;
-    }, {});
-
-    const contagemUF = dados.reduce((acc: Record<string, number>, curr: Resultado) => {
-      acc[curr.uf] = (acc[curr.uf] || 0) + 1;
-      return acc;
-    }, {});
-
-    const contagemIES = dados.reduce((acc: Record<string, number>, curr: Resultado) => {
-      acc[curr.ies] = (acc[curr.ies] || 0) + 1;
-      return acc;
-    }, {});
-
-    const edicoesMaisFrequentes = Object.entries(contagemEdicao)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([edicao, quantidade]) => `${edicao} (${quantidade})`);
-
-    const ufsMaisFrequentes = Object.entries(contagemUF)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([uf, quantidade]) => `${uf} (${quantidade})`);
-
-    const iesMaisFrequentes = Object.entries(contagemIES)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([ies, quantidade]) => `${ies} (${quantidade})`);
-
-    setEstatisticas({
-      edicoesPesquisadas: edicoesMaisFrequentes,
-      ufsPesquisadas: ufsMaisFrequentes,
-      iesPesquisadas: iesMaisFrequentes
-    });
-  };
-
-  // Carregar resultados iniciais ordenados por edição (recente primeiro) e IES
   useEffect(() => {
+    buscarDadosIniciais();
+  }, []);
+
+  const buscarDadosIniciais = () => {
     fetch('/api/resultados')
       .then(res => res.json())
       .then((data: Resultado[]) => {
@@ -78,9 +37,8 @@ const Simulado = () => {
           }
         });
         setResultados(ordenado);
-        atualizarEstatisticas(ordenado);
       });
-  }, []);
+  };
 
   const handleFiltroChange = (campo: string, valor: string) => {
     setFiltros(prevState => ({
@@ -102,7 +60,6 @@ const Simulado = () => {
           }
         });
         setResultados(resultadosFiltrados);
-        atualizarEstatisticas(resultadosFiltrados);
       });
   };
 
@@ -142,14 +99,6 @@ const Simulado = () => {
               </li>
             ))}
           </ul>
-
-          <div className="estatisticas">
-            <h3>Pesquisas Realizadas: {resultados.length}</h3>
-            <h3>Dados Exportados: PDF (n) CSV (n) XLSX (n)</h3>
-            <h3>Edições mais Pesquisadas: {estatisticas.edicoesPesquisadas.join(', ')}</h3>
-            <h3>UFs mais Pesquisadas: {estatisticas.ufsPesquisadas.join(', ')}</h3>
-            <h3>IES Pesquisadas: {estatisticas.iesPesquisadas.join(', ')}</h3>
-          </div>
         </>
       )}
     </div>
