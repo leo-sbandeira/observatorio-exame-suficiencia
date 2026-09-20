@@ -39,8 +39,11 @@ export default function PaginaSimulado() {
     totalSimulados: number;
     mediaAcertos: number | null;
     edicaoMaisFeita: string | null;
+    edicaoMaisFeitaContagem: number;
     bancaMaisFeita: string | null;
+    bancaMaisFeitaContagem: number;
     conteudoMaisFeito: string | null;
+    conteudoMaisFeitoContagem: number;
   } | null>(null);
 
   useEffect(() => {
@@ -161,9 +164,9 @@ export default function PaginaSimulado() {
               href="https://drive.google.com/drive/folders/1ysMmE_ld3ix9hXfvPH6FRXHDSqCaaaID?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 underline"
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              [provas e gabaritos]
+              Provas e Gabaritos
             </a>
           </div>
           <p className="text-sm text-slate-500">
@@ -173,15 +176,15 @@ export default function PaginaSimulado() {
         </div>
 
         {estatisticas && estatisticas.totalSimulados > 0 && (
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-5">
             <div>
-              <p className="text-xs text-slate-400">Simulados realizados</p>
+              <p className="text-xs text-slate-400">Simulados Realizados</p>
               <p className="text-lg font-bold text-slate-900">
                 {estatisticas.totalSimulados}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Média de acertos</p>
+              <p className="text-xs text-slate-400">Média de Acertos</p>
               <p className="text-lg font-bold text-slate-900">
                 {estatisticas.mediaAcertos !== null
                   ? `${estatisticas.mediaAcertos.toFixed(1)}%`
@@ -189,18 +192,27 @@ export default function PaginaSimulado() {
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Edição mais feita</p>
-              <p className="text-lg font-bold text-slate-900">
-                {estatisticas.edicaoMaisFeita ?? "—"}
+              <p className="text-xs text-slate-400">Edições Simuladas</p>
+              <p className="text-sm font-semibold text-slate-900">
+                {estatisticas.edicaoMaisFeita
+                  ? `${estatisticas.edicaoMaisFeita} (${estatisticas.edicaoMaisFeitaContagem})`
+                  : "—"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Banca / Conteúdo mais feitos</p>
+              <p className="text-xs text-slate-400">Bancas Simuladas</p>
               <p className="text-sm font-semibold text-slate-900">
-                {estatisticas.bancaMaisFeita ?? "—"}
+                {estatisticas.bancaMaisFeita
+                  ? `${estatisticas.bancaMaisFeita} (${estatisticas.bancaMaisFeitaContagem})`
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Conteúdos Simulados</p>
+              <p className="text-sm font-semibold text-slate-900">
                 {estatisticas.conteudoMaisFeito
-                  ? ` · ${estatisticas.conteudoMaisFeito}`
-                  : ""}
+                  ? `${estatisticas.conteudoMaisFeito} (${estatisticas.conteudoMaisFeitoContagem})`
+                  : "—"}
               </p>
             </div>
           </div>

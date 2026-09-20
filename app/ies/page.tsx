@@ -87,9 +87,18 @@ export default function PaginaIES() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade, ordenarPor, ordem, pagina]);
 
-  // volta para página 1 quando um filtro muda, e registra a busca
+  // volta para página 1 quando um filtro muda (sem registrar nada — o
+  // registro de estatística só acontece quando a pessoa clica em "Pesquisar")
   useEffect(() => {
     setPagina(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade]);
+
+  function registrarPesquisa() {
+    // só registra estatística quando a pessoa aciona uma busca de verdade,
+    // não a cada visita à página ou troca de aba
+    const temFiltro = instituicoesFiltro.length > 0 || edicao || uf || cidadeFiltro || modalidade;
+    if (!temFiltro) return;
     fetch("/api/ies/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -101,8 +110,7 @@ export default function PaginaIES() {
         ies: instituicoesFiltro.join(", "),
       }),
     }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade]);
+  }
 
   const [estatisticas, setEstatisticas] = useState<{
     totalAcessos: number;
@@ -302,6 +310,13 @@ export default function PaginaIES() {
             ))}
           </select>
         </label>
+        <button
+          type="button"
+          onClick={registrarPesquisa}
+          className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          Pesquisar
+        </button>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -315,6 +330,7 @@ export default function PaginaIES() {
                 <th className="py-2 pr-4">Cidade</th>
                 <th className="py-2 pr-4">Modalidade</th>
                 {colunaOrdenavel("inscritos", "Inscritos")}
+                <th className="py-2 pr-4">Presentes</th>
                 {colunaOrdenavel("aprovados", "Aprovados")}
                 {colunaOrdenavel("pctAprovadosPresentes", "% Aprov.")}
               </tr>
@@ -322,14 +338,14 @@ export default function PaginaIES() {
             <tbody>
               {carregando && (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-slate-400">
+                  <td colSpan={9} className="py-6 text-center text-slate-400">
                     Carregando…
                   </td>
                 </tr>
               )}
               {!carregando && resposta?.erro && (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-red-600">
+                  <td colSpan={9} className="py-6 text-center text-red-600">
                     {resposta.erro}
                   </td>
                 </tr>
@@ -351,6 +367,7 @@ export default function PaginaIES() {
                     <td className="py-2 pr-4">{d.cidade}</td>
                     <td className="py-2 pr-4">{d.modalidade}</td>
                     <td className="py-2 pr-4">{formatNum(d.inscritos)}</td>
+                    <td className="py-2 pr-4">{formatNum(d.presentes)}</td>
                     <td className="py-2 pr-4">{formatNum(d.aprovados)}</td>
                     <td className="py-2 pr-4 font-semibold">
                       {formatPct(d.pctAprovadosPresentes)}
