@@ -342,6 +342,23 @@ export default function PaginaSimulado() {
           ))}
         </div>
 
+        <div className="flex justify-between">
+          <button
+            onClick={() => setIndiceAtual((i) => Math.max(0, i - 1))}
+            disabled={indiceAtual === 0}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <button
+            onClick={() => setIndiceAtual((i) => Math.min(questoes.length - 1, i + 1))}
+            disabled={indiceAtual === questoes.length - 1}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm disabled:opacity-40"
+          >
+            Próxima
+          </button>
+        </div>
+
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="mb-3 text-xs text-slate-400">
             {q.edicao} · {q.banca} · Questão {q.questao} · {q.conteudo}
@@ -371,23 +388,6 @@ export default function PaginaSimulado() {
               </label>
             ))}
           </div>
-        </div>
-
-        <div className="flex justify-between">
-          <button
-            onClick={() => setIndiceAtual((i) => Math.max(0, i - 1))}
-            disabled={indiceAtual === 0}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Anterior
-          </button>
-          <button
-            onClick={() => setIndiceAtual((i) => Math.min(questoes.length - 1, i + 1))}
-            disabled={indiceAtual === questoes.length - 1}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm disabled:opacity-40"
-          >
-            Próxima
-          </button>
         </div>
       </div>
     );

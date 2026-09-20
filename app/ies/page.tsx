@@ -58,6 +58,7 @@ export default function PaginaIES() {
   const [instituicoesFiltro, setInstituicoesFiltro] = useState<string[]>([]);
   const [edicao, setEdicao] = useState("");
   const [uf, setUf] = useState("");
+  const [cidadeFiltro, setCidadeFiltro] = useState("");
   const [modalidade, setModalidade] = useState("");
   const [ordenarPor, setOrdenarPor] = useState("pctAprovadosPresentes");
   const [ordem, setOrdem] = useState<"asc" | "desc">("desc");
@@ -68,6 +69,7 @@ export default function PaginaIES() {
       instituicoes: instituicoesFiltro.join(","),
       edicao,
       uf,
+      cidade: cidadeFiltro,
       modalidade,
       ordenarPor,
       ordem,
@@ -83,13 +85,39 @@ export default function PaginaIES() {
       .then(setResposta)
       .finally(() => setCarregando(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instituicoesFiltro, edicao, uf, modalidade, ordenarPor, ordem, pagina]);
+  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade, ordenarPor, ordem, pagina]);
 
-  // volta para página 1 quando um filtro muda
+  // volta para página 1 quando um filtro muda, e registra a busca
   useEffect(() => {
     setPagina(1);
+    fetch("/api/ies/registro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        evento: "busca",
+        edicao,
+        uf,
+        cidade: cidadeFiltro,
+        ies: instituicoesFiltro.join(", "),
+      }),
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instituicoesFiltro, edicao, uf, modalidade]);
+  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade]);
+
+  const [estatisticas, setEstatisticas] = useState<{
+    totalAcessos: number;
+    totalExportacoes: number;
+    edicaoMaisBuscada: string | null;
+    iesMaisBuscada: string | null;
+    ufMaisBuscada: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/ies/estatisticas")
+      .then((r) => r.json())
+      .then(setEstatisticas)
+      .catch(() => {});
+  }, []);
 
   const totalPaginas = useMemo(
     () => (resposta ? Math.max(1, Math.ceil(resposta.total / resposta.porPagina)) : 1),
@@ -125,6 +153,11 @@ export default function PaginaIES() {
 
   async function exportarDados(formato: "csv" | "excel" | "pdf") {
     setExportando(formato);
+    fetch("/api/ies/registro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ evento: "exportacao", formato }),
+    }).catch(() => {});
     try {
       const params = montarParams({ exportar: "true" });
       const r = await fetch(`/api/ies?${params.toString()}`);
@@ -181,6 +214,31 @@ export default function PaginaIES() {
         </div>
       </div>
 
+      {estatisticas && (estatisticas.totalAcessos > 0 || estatisticas.totalExportacoes > 0) && (
+        <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4">
+          <div>
+            <p className="text-xs text-slate-400">Acessos aos dados</p>
+            <p className="text-lg font-bold text-slate-900">{estatisticas.totalAcessos}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Dados exportados</p>
+            <p className="text-lg font-bold text-slate-900">{estatisticas.totalExportacoes}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Edição / UF mais buscadas</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {estatisticas.edicaoMaisBuscada ?? "—"}
+              {estatisticas.ufMaisBuscada ? ` · ${estatisticas.ufMaisBuscada}` : ""}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">IES mais buscada</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {estatisticas.iesMaisBuscada ?? "—"}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <BuscaMultipla
           titulo="Instituição"
@@ -218,6 +276,16 @@ export default function PaginaIES() {
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex flex-col text-xs font-medium text-slate-400">
+          Cidade
+          <input
+            type="text"
+            value={cidadeFiltro}
+            onChange={(e) => setCidadeFiltro(e.target.value)}
+            placeholder="Ex: Palmas"
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+          />
         </label>
         <label className="flex flex-col text-xs font-medium text-slate-400">
           Modalidade

@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const edicao = searchParams.get("edicao");
     const uf = searchParams.get("uf");
+    const cidade = searchParams.get("cidade")?.toLowerCase().trim();
     const modalidade = searchParams.get("modalidade");
     const instituicoes = searchParams.get("instituicoes")?.split(",").filter(Boolean);
     const ordenarPor = (searchParams.get("ordenarPor") ??
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
 
     if (edicao) dados = dados.filter((d) => d.edicao === edicao);
     if (uf) dados = dados.filter((d) => d.uf === uf);
+    if (cidade) dados = dados.filter((d) => d.cidade.toLowerCase().includes(cidade));
     if (modalidade) dados = dados.filter((d) => d.modalidade === modalidade);
     if (instituicoes?.length) dados = dados.filter((d) => instituicoes.includes(d.ies));
 
