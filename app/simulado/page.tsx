@@ -426,7 +426,7 @@ export default function PaginaSimulado() {
             disabled={poolDisponivel === 0}
             className="mt-4 w-full sm:w-auto rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-40"
           >
-            Gerar simulado personalizado
+            Gerar Simulado Personalizado
           </button>
         </div>
       </div>
