@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://observatoriosuficiencia.com.br"),
@@ -54,7 +55,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
-        <Nav />
+        <Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-3M7ZW1DL92"
+  strategy="afterInteractive"
+/>
+<Script id="google-analytics" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3M7ZW1DL92');
+  `}
+</Script>
+<Nav />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
           {children}
         </main>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import MultiSelect from "@/components/MultiSelect";
+import RenderizadorQuestao from "@/components/RenderizadorQuestao";
 import {
   QuestaoSimulado,
   DISTRIBUICAO_OFICIAL,
@@ -241,9 +242,7 @@ export default function PaginaSimulado() {
           <p className="mb-3 text-xs text-slate-400">
             {q.edicao} · {q.banca} · Questão {q.questao} · {q.conteudo}
           </p>
-          <p className="whitespace-pre-line text-justify text-sm leading-normal text-slate-800">
-            {q.enunciado}
-          </p>
+          <RenderizadorQuestao texto={q.enunciado} />
           <div className="mt-5 space-y-2">
             {(Object.entries(q.alternativas) as [Letra, string][]).map(([letra, texto]) => (
               <label
@@ -261,8 +260,9 @@ export default function PaginaSimulado() {
                   onChange={() => responder(letra)}
                   className="mt-1"
                 />
-                <span>
-                  <strong>({letra})</strong> {texto}
+                <span className="flex-1">
+                  <strong>({letra})</strong>{" "}
+                  <RenderizadorQuestao texto={texto} compacto />
                 </span>
               </label>
             ))}
@@ -375,23 +375,25 @@ export default function PaginaSimulado() {
                   )}
                 </summary>
                 <div className="mt-3 text-sm">
-                  <p className="whitespace-pre-line text-justify text-slate-700">{q.enunciado}</p>
+                  <RenderizadorQuestao texto={q.enunciado} corClasse="text-slate-700" />
                   <div className="mt-2 space-y-1">
                     {(Object.entries(q.alternativas) as [Letra, string][]).map(
-                      ([letra, texto]) => (
-                        <p
-                          key={letra}
-                          className={
-                            letra === q.correta
-                              ? "font-semibold text-green-700"
-                              : letra === marcada
-                              ? "font-semibold text-red-700"
-                              : "text-slate-600"
-                          }
-                        >
-                          ({letra}) {texto}
-                        </p>
-                      )
+                      ([letra, texto]) => {
+                        const cor =
+                          letra === q.correta
+                            ? "text-green-700 font-semibold"
+                            : letra === marcada
+                            ? "text-red-700 font-semibold"
+                            : "text-slate-600";
+                        return (
+                          <div key={letra} className="flex gap-1">
+                            <strong className={cor}>({letra})</strong>
+                            <div className="flex-1">
+                              <RenderizadorQuestao texto={texto} compacto corClasse={cor} />
+                            </div>
+                          </div>
+                        );
+                      }
                     )}
                   </div>
                 </div>
