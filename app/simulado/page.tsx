@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { jsPDF } from "jspdf";
 import MultiSelect from "@/components/MultiSelect";
 import RenderizadorQuestao from "@/components/RenderizadorQuestao";
 import {
@@ -113,6 +114,120 @@ export default function PaginaSimulado() {
     setFase("config");
     setQuestoes([]);
     setRespostas({});
+  }
+
+  function exportarPDF() {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentWidth = pageWidth - 2 * margin;
+    let yPosition = margin;
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin, yPosition);
+    yPosition += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const dataHoje = new Date().toLocaleDateString("pt-BR");
+    doc.text(`Data: ${dataHoje}`, margin, yPosition);
+    yPosition += 6;
+    doc.text(`Total de questões: ${questoes.length}`, margin, yPosition);
+    yPosition += 10;
+
+    // Questões
+    doc.setFontSize(11);
+    questoes.forEach((questao, index) => {
+      const questaoNum = index + 1;
+
+      if (yPosition > pageHeight - margin - 30) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Questão ${questaoNum}`, margin, yPosition);
+      yPosition += 5;
+
+      doc.setFont("helvetica", "normal");
+      const linhas = doc.splitTextToSize(questao.enunciado, contentWidth);
+      doc.text(linhas, margin, yPosition);
+      yPosition += linhas.length * 4 + 3;
+
+      // Alternativas
+      const letras = ["A", "B", "C", "D"];
+      letras.forEach((letra) => {
+        if (yPosition > pageHeight - margin - 15) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        const texto = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
+        const linhasAlt = doc.splitTextToSize(`(${letra}) ${texto}`, contentWidth - 5);
+        doc.text(linhasAlt, margin + 5, yPosition);
+        yPosition += linhasAlt.length * 4 + 2;
+      });
+
+      yPosition += 3;
+    });
+
+    // Folha de resposta
+    doc.addPage();
+    yPosition = margin;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("FOLHA DE RESPOSTA", margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const questoesPorLinha = 5;
+    for (let i = 0; i < questoes.length; i += questoesPorLinha) {
+      if (yPosition > pageHeight - margin - 20) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      const linhasAntua = Math.min(questoesPorLinha, questoes.length - i);
+      for (let j = 0; j < linhasAntua; j++) {
+        const questaoNum = i + j + 1;
+        const espacoX = (contentWidth / linhasAntua) * j;
+
+        doc.text(`Q${questaoNum}: ( ) ( ) ( ) ( )`, margin + espacoX, yPosition);
+      }
+      yPosition += 8;
+    }
+
+    // Gabarito
+    doc.addPage();
+    yPosition = margin;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("GABARITO", margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    questoes.forEach((questao, index) => {
+      if (yPosition > pageHeight - margin - 15) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      const questaoNum = index + 1;
+      const alternativaCorreta = (questao.alternativas[questao.correta as "A" | "B" | "C" | "D"] || "").substring(0, 60);
+      doc.text(
+        `Q${questaoNum}: ${questao.correta} - ${alternativaCorreta}...`,
+        margin,
+        yPosition
+      );
+      yPosition += 7;
+    });
+
+    doc.save("simulado-exame-suficiencia.pdf");
   }
 
   function valoresUnicos(lista: QuestaoSimulado[], chave: "edicao" | "banca" | "conteudo") {
@@ -426,8 +541,16 @@ export default function PaginaSimulado() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Resultado do Simulado</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Resultado do Simulado</h1>
+        </div>
+        <button
+          onClick={exportarPDF}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          Exportar PDF
+        </button>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
