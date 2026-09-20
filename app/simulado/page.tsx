@@ -122,6 +122,21 @@ export default function PaginaSimulado() {
     setRespostas({});
   }
 
+  // Processa tags especiais no texto das questões
+  function processarTextoQuestao(texto: string): string {
+    // Remove tags [LISTA] e [/LISTA], preservando o conteúdo
+    texto = texto.replace(/\[LISTA\]/g, "").replace(/\[\/LISTA\]/g, "");
+
+    // Processa tags [TABELA:Item|Valor] e [/TABELA]
+    texto = texto.replace(/\[TABELA:([^\]]+)\]/g, "$1");
+    texto = texto.replace(/\[\/TABELA\]/g, "");
+
+    // Remove espaços múltiplos
+    texto = texto.replace(/\s+/g, " ");
+
+    return texto.trim();
+  }
+
   async function gerarSimuladoOficialPDF() {
     const { questoes: todasQuestoes } = gerarSimuladoOficial();
     const questoesAleatorias = todasQuestoes
@@ -210,10 +225,11 @@ export default function PaginaSimulado() {
       yPosition += 4;
 
       // Enunciado (justificado)
+      const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 0, 0);
-      const linhasEnunciado = doc.splitTextToSize(questao.enunciado, contentWidth);
+      const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
       doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
       yPosition += linhasEnunciado.length * 3.5 + 2;
 
@@ -230,8 +246,9 @@ export default function PaginaSimulado() {
           doc.setFont("helvetica", "normal");
           doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
         }
-        const texto = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
-        const linhasAlt = doc.splitTextToSize(`(${letra}) ${texto}`, contentWidth - 3);
+        const textoRaw = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
+        const textoLimpo = processarTextoQuestao(textoRaw);
+        const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth - 3);
         doc.text(linhasAlt, margin + 3, yPosition, { align: "justify", maxWidth: contentWidth - 3 });
         yPosition += linhasAlt.length * 3.5 + 1;
       });
