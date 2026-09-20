@@ -61,7 +61,14 @@ export function listarAssuntos(conteudos: string[]): string[] {
   return Array.from(new Set(pool.map((q) => q.assunto))).sort();
 }
 
-/** Gera um simulado personalizado a partir dos filtros escolhidos. */
+/** Gera um simulado personalizado a partir dos filtros escolhidos.
+ *
+ * Quando o usuário filtra por banca e/ou edição, mas não filtra por
+ * conteúdo nem assunto, entende-se que ele quer "a prova completa"
+ * daquele recorte: em vez de sortear uma amostra, retorna todas as
+ * questões correspondentes, em ordem — por edição (se houver mais de
+ * uma) e, dentro de cada edição, da questão 1 à 50.
+ */
 export function gerarSimuladoPersonalizado(opts: {
   bancas: string[];
   edicoes: string[];
@@ -74,6 +81,17 @@ export function gerarSimuladoPersonalizado(opts: {
   if (opts.edicoes.length) pool = pool.filter((q) => opts.edicoes.includes(q.edicao));
   if (opts.conteudos.length) pool = pool.filter((q) => opts.conteudos.includes(q.conteudo));
   if (opts.assuntos.length) pool = pool.filter((q) => opts.assuntos.includes(q.assunto));
+
+  const semFiltroDeConteudo = opts.conteudos.length === 0 && opts.assuntos.length === 0;
+  const comFiltroDeBancaOuEdicao = opts.bancas.length > 0 || opts.edicoes.length > 0;
+
+  if (semFiltroDeConteudo && comFiltroDeBancaOuEdicao) {
+    return [...pool].sort((a, b) => {
+      if (a.edicao !== b.edicao) return a.edicao.localeCompare(b.edicao);
+      return a.questao - b.questao;
+    });
+  }
+
   return embaralhar(pool).slice(0, Math.min(opts.quantidade, pool.length));
 }
 

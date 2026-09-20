@@ -159,7 +159,7 @@ export default function PaginaConteudos() {
                 : ["Brasil"]
               ).map((r) => ({
                 value: r,
-                label: `${r} (${r === "Brasil" ? "2017.2 a 2025.2" : "2017.2 a 2023.2"})`,
+                label: `${r} (${r === "Brasil" ? "2017.2 a 2026.1" : "2017.2 a 2023.2"})`,
               }))}
               selecionados={regioesFiltro}
               onChange={setRegioesFiltro}
@@ -308,7 +308,7 @@ export default function PaginaConteudos() {
           edital referente ao ano de 2025.1 como parâmetro.
         </p>
         <p>
-          A partir da edição de 2017.2 até a de 2025.2 o CFC divulgou o
+          A partir da edição de 2017.2 até a de 2026.1 o CFC divulgou o
           desempenho geral por conteúdo.
         </p>
         <p>
