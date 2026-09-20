@@ -12,11 +12,18 @@ export async function GET() {
     ? percentuais.reduce((a, b) => a + b, 0) / percentuais.length
     : null;
 
+  const edicao = maisFrequente(concluidos.map((l) => l.edicoes));
+  const banca = maisFrequente(concluidos.map((l) => l.bancas));
+  const conteudo = maisFrequente(concluidos.map((l) => l.conteudos));
+
   return NextResponse.json({
     totalSimulados: concluidos.length,
     mediaAcertos,
-    edicaoMaisFeita: maisFrequente(concluidos.map((l) => l.edicoes)),
-    bancaMaisFeita: maisFrequente(concluidos.map((l) => l.bancas)),
-    conteudoMaisFeito: maisFrequente(concluidos.map((l) => l.conteudos)),
+    edicaoMaisFeita: edicao?.valor ?? null,
+    edicaoMaisFeitaContagem: edicao?.contagem ?? 0,
+    bancaMaisFeita: banca?.valor ?? null,
+    bancaMaisFeitaContagem: banca?.contagem ?? 0,
+    conteudoMaisFeito: conteudo?.valor ?? null,
+    conteudoMaisFeitoContagem: conteudo?.contagem ?? 0,
   });
 }

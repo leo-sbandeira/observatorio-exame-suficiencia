@@ -46,9 +46,15 @@ export async function buscarLinhasEstatisticas(): Promise<LinhaEstatistica[]> {
   }
 }
 
+export interface MaisFrequenteResultado {
+  valor: string;
+  contagem: number;
+}
+
 /** Dado um array de strings (cada uma podendo conter vários valores
- * separados por vírgula), retorna o valor individual mais frequente. */
-export function maisFrequente(linhas: string[]): string | null {
+ * separados por vírgula), retorna o valor individual mais frequente, com
+ * quantas vezes ele apareceu. */
+export function maisFrequente(linhas: string[]): MaisFrequenteResultado | null {
   const contagem = new Map<string, number>();
   for (const linha of linhas) {
     for (const v of linha.split(",").map((x) => x.trim()).filter(Boolean)) {
@@ -63,5 +69,5 @@ export function maisFrequente(linhas: string[]): string | null {
       melhorContagem = c;
     }
   }
-  return melhorValor;
+  return melhorValor ? { valor: melhorValor, contagem: melhorContagem } : null;
 }

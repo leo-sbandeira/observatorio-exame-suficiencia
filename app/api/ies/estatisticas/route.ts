@@ -10,8 +10,8 @@ export async function GET() {
   return NextResponse.json({
     totalAcessos: buscas.length,
     totalExportacoes: exportacoes.length,
-    edicaoMaisBuscada: maisFrequente(buscas.map((l) => l.edicoes)),
-    iesMaisBuscada: maisFrequente(buscas.map((l) => l.ies)),
-    ufMaisBuscada: maisFrequente(buscas.map((l) => l.uf)),
+    edicaoMaisBuscada: maisFrequente(buscas.map((l) => l.edicoes))?.valor ?? null,
+    iesMaisBuscada: maisFrequente(buscas.map((l) => l.ies))?.valor ?? null,
+    ufMaisBuscada: maisFrequente(buscas.map((l) => l.uf))?.valor ?? null,
   });
 }
