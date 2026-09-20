@@ -1,0 +1,24 @@
+1:"$Sreact.fragment"
+2:I[47257,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"ClientPageRoot"]
+3:I[59734,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js","/_next/static/chunks/0ce6f-xo8q02q.js","/_next/static/chunks/3l_jzo_ep8am8.js"],"default"]
+6:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+b:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"ViewportBoundary"]
+c:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"MetadataBoundary"]
+d:I[27201,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"IconMark"]
+f:I[39756,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"default"]
+10:I[37457,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/3gvmzu83cesrh.js"],"default"]
+a:X
+12:X
+12:C
+0:{"buildId":"pwbAMK7X2TWrR5E7lIVKu","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/0ce6f-xo8q02q.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/3l_jzo_ep8am8.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":"$@9","staleTime":"$a","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$Lb",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$Lc",null,{"children":["$","$7",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Observatório do Exame de Suficiência"}],["$","meta","1",{"name":"description","content":"Observatório do Exame de Suficiência do CFC: estatísticas oficiais por edição, UF, instituição de ensino e área de conteúdo, além de simulado gratuito com questões de provas anteriores."}],["$","meta","2",{"name":"keywords","content":"observatório do exame de suficiência,exame de suficiência,exame de suficiência CFC,simulado exame de suficiência,CFC contabilidade,estatísticas exame de suficiência"}],["$","meta","3",{"name":"robots","content":"index, follow"}],["$","meta","4",{"name":"google-site-verification","content":"AGOVjvudU90NLQKkr1eVfEaiM2vSdoEmHG3F1NtO3oM"}],["$","meta","5",{"property":"og:title","content":"Observatório do Exame de Suficiência"}],["$","meta","6",{"property":"og:description","content":"Estatísticas oficiais do Exame de Suficiência do CFC por edição, UF, instituição de ensino e área de conteúdo, além de simulado gratuito."}],["$","meta","7",{"property":"og:url","content":"https://observatoriosuficiencia.com.br"}],["$","meta","8",{"property":"og:site_name","content":"Observatório do Exame de Suficiência"}],["$","meta","9",{"property":"og:locale","content":"pt_BR"}],["$","meta","10",{"property":"og:type","content":"website"}],["$","meta","11",{"name":"twitter:card","content":"summary"}],["$","meta","12",{"name":"twitter:title","content":"Observatório do Exame de Suficiência"}],["$","meta","13",{"name":"twitter:description","content":"Estatísticas oficiais do Exame de Suficiência do CFC por edição, UF, instituição de ensino e área de conteúdo, além de simulado gratuito."}],["$","link","14",{"rel":"icon","href":"/favicon.ico?favicon.19g_d4xh99da-.ico","sizes":"16x16","type":"image/x-icon"}],["$","link","15",{"rel":"icon","href":"/favicon.ico"}],["$","link","16",{"rel":"apple-touch-icon","href":"/apple-touch-icon.png"}],["$","$Ld","17",{}]]}]}]}],null]}],"isPartial":"$@e","staleTime":"$a","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lf",null,{"parallelRouterKey":"children","template":["$","$L10",null,{}]}]]}],"isPartial":"$@11","staleTime":"$a","varyParams":"$12"}],"isUpgradeableISRFallback":false,"a":"$@13","rootVaryParams":null,"needsRuntimeRequest":"$@14"}
+4:{}
+5:"$0:data:0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
+14:true
+a:300
+a:C
+13:0
+e:"$undefined"
+11:"$undefined"
+9:"$undefined"
