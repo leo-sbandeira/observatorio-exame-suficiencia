@@ -563,12 +563,6 @@ export default function PaginaSimulado() {
             >
               Gerar Simulado Online
             </button>
-            <button
-              onClick={gerarSimuladoOficialPDF}
-              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Gerar Simulado Impresso
-            </button>
           </div>
         </div>
 
