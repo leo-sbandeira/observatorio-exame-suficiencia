@@ -15,6 +15,13 @@ export interface QuestaoSimulado {
 
 export const BANCO_QUESTOES = banco as QuestaoSimulado[];
 
+// Bancas ativas (Consuplan temporariamente suspensa)
+// Os dados permanecem no arquivo, apenas ocultados do UI
+const BANCAS_SUSPENSAS = ["Consuplan"];
+export const BANCO_QUESTOES_ATIVO = BANCO_QUESTOES.filter(
+  (q) => !BANCAS_SUSPENSAS.includes(q.banca)
+);
+
 // Distribuição oficial do simulado de 50 questões, por área de conteúdo,
 // espelhando a matriz de referência do Exame de Suficiência.
 export const DISTRIBUICAO_OFICIAL: Record<string, number> = {
@@ -43,21 +50,21 @@ export function embaralhar<T>(arr: T[]): T[] {
 }
 
 export function listarBancas(): string[] {
-  return Array.from(new Set(BANCO_QUESTOES.map((q) => q.banca))).sort();
+  return Array.from(new Set(BANCO_QUESTOES_ATIVO.map((q) => q.banca))).sort();
 }
 
 export function listarEdicoes(): string[] {
-  return Array.from(new Set(BANCO_QUESTOES.map((q) => q.edicao))).sort();
+  return Array.from(new Set(BANCO_QUESTOES_ATIVO.map((q) => q.edicao))).sort();
 }
 
 export function listarConteudos(): string[] {
-  return Array.from(new Set(BANCO_QUESTOES.map((q) => q.conteudo))).sort();
+  return Array.from(new Set(BANCO_QUESTOES_ATIVO.map((q) => q.conteudo))).sort();
 }
 
 export function listarAssuntos(conteudos: string[]): string[] {
   const pool = conteudos.length
-    ? BANCO_QUESTOES.filter((q) => conteudos.includes(q.conteudo))
-    : BANCO_QUESTOES;
+    ? BANCO_QUESTOES_ATIVO.filter((q) => conteudos.includes(q.conteudo))
+    : BANCO_QUESTOES_ATIVO;
   return Array.from(new Set(pool.map((q) => q.assunto))).sort();
 }
 
@@ -76,7 +83,7 @@ export function gerarSimuladoPersonalizado(opts: {
   assuntos: string[];
   quantidade: number;
 }): QuestaoSimulado[] {
-  let pool = BANCO_QUESTOES;
+  let pool = BANCO_QUESTOES_ATIVO;
   if (opts.bancas.length) pool = pool.filter((q) => opts.bancas.includes(q.banca));
   if (opts.edicoes.length) pool = pool.filter((q) => opts.edicoes.includes(q.edicao));
   if (opts.conteudos.length) pool = pool.filter((q) => opts.conteudos.includes(q.conteudo));
@@ -103,7 +110,7 @@ export function gerarSimuladoOficial(): {
   const avisos: string[] = [];
   const questoes: QuestaoSimulado[] = [];
   for (const [conteudo, quantidade] of Object.entries(DISTRIBUICAO_OFICIAL)) {
-    const pool = BANCO_QUESTOES.filter((q) => q.conteudo === conteudo);
+    const pool = BANCO_QUESTOES_ATIVO.filter((q) => q.conteudo === conteudo);
     if (pool.length < quantidade) {
       avisos.push(
         `Apenas ${pool.length} questões disponíveis para "${conteudo}" (necessário ${quantidade}).`

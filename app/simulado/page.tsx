@@ -319,8 +319,7 @@ export default function PaginaSimulado() {
             </a>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-2">
-            Pratique com questões de provas anteriores da FGV (2024.1 a
-            2026.1) e da Consuplan (2021.1 a 2023.2).
+            Pratique com questões de provas anteriores da FGV (2024.1 a 2026.1).
           </p>
         </div>
 
