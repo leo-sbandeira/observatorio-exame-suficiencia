@@ -232,22 +232,36 @@ export default function PaginaSimulado() {
         doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
       }
 
-      // Número e metadados da questão (quebra se necessário)
+      // Número e metadados da questão (2 linhas: identificação + conteúdo)
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(120, 120, 120);
-      const linhasMetadados = doc.splitTextToSize(`Questão ${questaoNum}: ${metadados}`, contentWidth);
-      doc.text(linhasMetadados, margin, yPosition);
-      yPosition += linhasMetadados.length * 4.5 + 3;
 
-      // Enunciado (justificado)
+      // Linha 1: Questão X: edicao · banca · Questão Y
+      const identificacao = `Questão ${questaoNum}: ${questao.edicao} · ${questao.banca} · Questão ${questao.questao}`;
+      doc.text(identificacao, margin, yPosition);
+      yPosition += 5;
+
+      // Linha 2: Conteúdo
+      doc.text(questao.conteudo, margin, yPosition);
+      yPosition += 5;
+
+      // Enunciado (justificado, preservando quebras de linha para listas)
       const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 0, 0);
-      const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
-      doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-      yPosition += linhasEnunciado.length * 6.5 + 5;
+
+      // Divide por quebras de linha e processa cada parágrafo
+      const paragrafos = enunciadoLimpo.split("\n");
+      let linhasProcessadas = 0;
+      paragrafos.forEach((paragrafo) => {
+        const linhasParagrafo = doc.splitTextToSize(paragrafo.trim(), contentWidth);
+        doc.text(linhasParagrafo, margin, yPosition, { align: "justify", maxWidth: contentWidth });
+        yPosition += linhasParagrafo.length * 4.5 + 2;
+        linhasProcessadas += linhasParagrafo.length;
+      });
+      yPosition += 2;
 
       // Alternativas
       const letras = ["A", "B", "C", "D"];
@@ -264,11 +278,21 @@ export default function PaginaSimulado() {
         }
         const textoRaw = questao.alternativas[letra as "A" | "B" | "C" | "D"] || "";
         const textoLimpo = processarTextoQuestao(textoRaw);
-        const linhasAlt = doc.splitTextToSize(`(${letra}) ${textoLimpo}`, contentWidth);
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        doc.text(linhasAlt, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-        yPosition += linhasAlt.length * 6.5 + 3;
+
+        // Processa alternativa com quebras de linha
+        const paragrafosAlt = textoLimpo.split("\n");
+        let yAlt = yPosition;
+
+        paragrafosAlt.forEach((paragrafo, idx) => {
+          const prefixo = idx === 0 ? `(${letra}) ` : "";
+          const linhasAlt = doc.splitTextToSize(prefixo + paragrafo.trim(), contentWidth);
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "normal");
+          doc.text(linhasAlt, margin, yAlt, { align: "justify", maxWidth: contentWidth });
+          yAlt += linhasAlt.length * 4.5 + 2;
+        });
+
+        yPosition = yAlt + 1;
       });
 
       yPosition += 8;
