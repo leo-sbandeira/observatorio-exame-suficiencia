@@ -71,3 +71,20 @@ export function maisFrequente(linhas: string[]): MaisFrequenteResultado | null {
   }
   return melhorValor ? { valor: melhorValor, contagem: melhorContagem } : null;
 }
+
+/** Retorna os 3 itens mais frequentes com suas contagens */
+export function tresMaisFrequentes(linhas: string[]): MaisFrequenteResultado[] {
+  const contagem = new Map<string, number>();
+  for (const linha of linhas) {
+    for (const v of linha.split(",").map((x) => x.trim()).filter(Boolean)) {
+      contagem.set(v, (contagem.get(v) ?? 0) + 1);
+    }
+  }
+
+  const ordenado = Array.from(contagem.entries())
+    .map(([valor, cnt]) => ({ valor, contagem: cnt }))
+    .sort((a, b) => b.contagem - a.contagem)
+    .slice(0, 3);
+
+  return ordenado;
+}

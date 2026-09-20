@@ -53,16 +53,17 @@ const NOTAS_RODAPE_EXPORT = [
 
 export default function PaginaIES() {
   const [resposta, setResposta] = useState<RespostaAPI | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(false);
   const [exportando, setExportando] = useState<string | null>(null);
   const [instituicoesFiltro, setInstituicoesFiltro] = useState<string[]>([]);
   const [edicao, setEdicao] = useState("");
   const [uf, setUf] = useState("");
   const [cidadeFiltro, setCidadeFiltro] = useState("");
   const [modalidade, setModalidade] = useState("");
-  const [ordenarPor, setOrdenarPor] = useState("pctAprovadosPresentes");
+  const [ordenarPor, setOrdenarPor] = useState("edicao");
   const [ordem, setOrdem] = useState<"asc" | "desc">("desc");
   const [pagina, setPagina] = useState(1);
+  const [temFiltroAplicado, setTemFiltroAplicado] = useState(false);
 
   function montarParams(extra: Record<string, string> = {}) {
     return new URLSearchParams({
@@ -77,28 +78,21 @@ export default function PaginaIES() {
     });
   }
 
-  useEffect(() => {
-    const params = montarParams({ pagina: String(pagina), porPagina: "25" });
+  // Carregar dados quando o usuário clica em Pesquisar
+  function executarPesquisa() {
+    const temFiltro = instituicoesFiltro.length > 0 || edicao || uf || cidadeFiltro || modalidade;
+    if (!temFiltro) return;
+
+    setTemFiltroAplicado(true);
+    setPagina(1);
+    const params = montarParams({ pagina: "1", porPagina: "25" });
     setCarregando(true);
     fetch(`/api/ies?${params.toString()}`)
       .then((r) => r.json())
       .then(setResposta)
       .finally(() => setCarregando(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade, ordenarPor, ordem, pagina]);
 
-  // volta para página 1 quando um filtro muda (sem registrar nada — o
-  // registro de estatística só acontece quando a pessoa clica em "Pesquisar")
-  useEffect(() => {
-    setPagina(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instituicoesFiltro, edicao, uf, cidadeFiltro, modalidade]);
-
-  function registrarPesquisa() {
-    // só registra estatística quando a pessoa aciona uma busca de verdade,
-    // não a cada visita à página ou troca de aba
-    const temFiltro = instituicoesFiltro.length > 0 || edicao || uf || cidadeFiltro || modalidade;
-    if (!temFiltro) return;
+    // Registrar busca
     fetch("/api/ies/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -112,13 +106,45 @@ export default function PaginaIES() {
     }).catch(() => {});
   }
 
+  // Carregar mais resultados quando a página muda
+  useEffect(() => {
+    if (!temFiltroAplicado) return;
+    const params = montarParams({ pagina: String(pagina), porPagina: "25" });
+    setCarregando(true);
+    fetch(`/api/ies?${params.toString()}`)
+      .then((r) => r.json())
+      .then(setResposta)
+      .finally(() => setCarregando(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina, ordenarPor, ordem, temFiltroAplicado]);
+
   const [estatisticas, setEstatisticas] = useState<{
     totalAcessos: number;
     totalExportacoes: number;
-    edicaoMaisBuscada: string | null;
-    iesMaisBuscada: string | null;
-    ufMaisBuscada: string | null;
+    edicoesMaisBuscadas: string[];
+    iesMaisBuscadas: string[];
+    ufsMaisBuscadas: string[];
   } | null>(null);
+
+  // Carregar resultados iniciais ao abrir a página
+  useEffect(() => {
+    const params = new URLSearchParams({
+      instituicoes: "",
+      edicao: "",
+      uf: "",
+      cidade: "",
+      modalidade: "",
+      ordenarPor: "edicao",
+      ordem: "desc",
+      pagina: "1",
+      porPagina: "25",
+    });
+    setCarregando(true);
+    fetch(`/api/ies?${params.toString()}`)
+      .then((r) => r.json())
+      .then(setResposta)
+      .finally(() => setCarregando(false));
+  }, []);
 
   useEffect(() => {
     fetch("/api/ies/estatisticas")
@@ -223,26 +249,39 @@ export default function PaginaIES() {
       </div>
 
       {estatisticas && (estatisticas.totalAcessos > 0 || estatisticas.totalExportacoes > 0) && (
-        <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-6">
           <div>
-            <p className="text-xs text-slate-400">Acessos aos dados</p>
+            <p className="text-xs text-slate-400">Pesquisas Realizadas</p>
             <p className="text-lg font-bold text-slate-900">{estatisticas.totalAcessos}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Dados exportados</p>
-            <p className="text-lg font-bold text-slate-900">{estatisticas.totalExportacoes}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400">Edição / UF mais buscadas</p>
+            <p className="text-xs text-slate-400">Dados Exportados</p>
             <p className="text-sm font-semibold text-slate-900">
-              {estatisticas.edicaoMaisBuscada ?? "—"}
-              {estatisticas.ufMaisBuscada ? ` · ${estatisticas.ufMaisBuscada}` : ""}
+              {estatisticas.totalExportacoes > 0 ? `(${estatisticas.totalExportacoes})` : "—"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">IES mais buscada</p>
-            <p className="text-sm font-semibold text-slate-900">
-              {estatisticas.iesMaisBuscada ?? "—"}
+            <p className="text-xs text-slate-400">Edições Pesquisadas</p>
+            <p className="text-xs font-semibold text-slate-900">
+              {estatisticas.edicoesMaisBuscadas.length > 0
+                ? estatisticas.edicoesMaisBuscadas.join(", ")
+                : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">UFs Pesquisadas</p>
+            <p className="text-xs font-semibold text-slate-900">
+              {estatisticas.ufsMaisBuscadas.length > 0
+                ? estatisticas.ufsMaisBuscadas.join(", ")
+                : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">IES Pesquisadas</p>
+            <p className="text-xs font-semibold text-slate-900">
+              {estatisticas.iesMaisBuscadas.length > 0
+                ? estatisticas.iesMaisBuscadas.join(", ")
+                : "—"}
             </p>
           </div>
         </div>
@@ -312,8 +351,9 @@ export default function PaginaIES() {
         </label>
         <button
           type="button"
-          onClick={registrarPesquisa}
-          className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          onClick={executarPesquisa}
+          disabled={instituicoesFiltro.length === 0 && !edicao && !uf && !cidadeFiltro && !modalidade}
+          className="self-end rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
         >
           Pesquisar
         </button>
