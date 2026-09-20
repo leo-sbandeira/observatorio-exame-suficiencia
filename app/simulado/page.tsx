@@ -231,12 +231,13 @@ export default function PaginaSimulado() {
         doc.text(`${currentPage - 1} de ${Math.ceil((questoesAExportar.length / 4) + 2)}`, pageWidth - margin - 10, pageHeight - 8, { align: "right" });
       }
 
-      // Número e metadados da questão
-      doc.setFontSize(12);
+      // Número e metadados da questão (quebra se necessário)
+      doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(120, 120, 120);
-      doc.text(`Questão ${questaoNum}: ${metadados}`, margin, yPosition);
-      yPosition += 6;
+      const linhasMetadados = doc.splitTextToSize(`Questão ${questaoNum}: ${metadados}`, contentWidth);
+      doc.text(linhasMetadados, margin, yPosition);
+      yPosition += linhasMetadados.length * 4.5 + 3;
 
       // Enunciado (justificado)
       const enunciadoLimpo = processarTextoQuestao(questao.enunciado);
@@ -245,7 +246,7 @@ export default function PaginaSimulado() {
       doc.setTextColor(0, 0, 0);
       const linhasEnunciado = doc.splitTextToSize(enunciadoLimpo, contentWidth);
       doc.text(linhasEnunciado, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-      yPosition += linhasEnunciado.length * 5.5 + 4;
+      yPosition += linhasEnunciado.length * 6.5 + 5;
 
       // Alternativas
       const letras = ["A", "B", "C", "D"];
@@ -266,10 +267,10 @@ export default function PaginaSimulado() {
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         doc.text(linhasAlt, margin, yPosition, { align: "justify", maxWidth: contentWidth });
-        yPosition += linhasAlt.length * 5.5 + 2;
+        yPosition += linhasAlt.length * 6.5 + 3;
       });
 
-      yPosition += 6;
+      yPosition += 8;
     });
 
     // Gabarito em tabela 25x4
