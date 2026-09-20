@@ -116,7 +116,15 @@ export default function PaginaSimulado() {
     setRespostas({});
   }
 
-  function gerarPDFSimulado(questoesAExportar: QuestaoSimulado[]) {
+  async function gerarSimuladoOficialPDF() {
+    const { questoes: todasQuestoes } = gerarSimuladoOficial();
+    const questoesAleatorias = todasQuestoes
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 50);
+    await gerarPDFSimulado(questoesAleatorias, "oficial");
+  }
+
+  async function gerarPDFSimulado(questoesAExportar: QuestaoSimulado[], tipo: "oficial" | "personalizado" = "personalizado") {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -124,12 +132,25 @@ export default function PaginaSimulado() {
     const contentWidth = pageWidth - 2 * margin;
     let yPosition = margin;
 
-    // Cabeçalho
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("[LOGO]", margin, yPosition);
+    // Cabeçalho com logo
+    try {
+      const response = await fetch("/logo-icone.png");
+      const blob = await response.blob();
+      const logoDataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      const logoWidth = 12;
+      const logoHeight = 12;
+      doc.addImage(logoDataUrl, "PNG", margin, yPosition - 2, logoWidth, logoHeight);
+    } catch {
+      // Se não conseguir carregar, continua sem logo
+    }
+
     doc.setFontSize(16);
-    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin + 20, yPosition);
+    doc.setFont("helvetica", "bold");
+    doc.text("SIMULADO - EXAME DE SUFICIÊNCIA", margin + 15, yPosition);
     yPosition += 12;
 
     doc.setFontSize(10);
@@ -352,12 +373,20 @@ export default function PaginaSimulado() {
             (2), Língua Portuguesa Aplicada (2), Matemática Financeira e
             Estatística (2), Perícia Contábil (2), Controladoria (1).
           </p>
-          <button
-            onClick={iniciarOficial}
-            className="mt-4 w-full sm:w-auto rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            Gerar simulado oficial
-          </button>
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={iniciarOficial}
+              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Gerar Simulado Online
+            </button>
+            <button
+              onClick={gerarSimuladoOficialPDF}
+              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Gerar Simulado Impresso
+            </button>
+          </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -550,7 +579,7 @@ export default function PaginaSimulado() {
           <h1 className="text-xl sm:text-2xl font-bold">Resultado do Simulado</h1>
         </div>
         <button
-          onClick={() => gerarPDFSimulado(questoes)}
+          onClick={() => gerarPDFSimulado(questoes, modoSimulado ?? "personalizado")}
           className="w-full sm:w-auto rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
           Exportar PDF
