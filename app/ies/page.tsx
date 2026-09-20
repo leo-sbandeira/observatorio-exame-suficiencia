@@ -250,45 +250,45 @@ export default function PaginaIES() {
 
       {estatisticas && (estatisticas.totalAcessos > 0 || estatisticas.totalExportacoes > 0) && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          {/* Linha 1: 4 colunas */}
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 mb-6">
-            {/* Coluna 1: Pesquisas e Edições */}
+            {/* Coluna 1: Pesquisas Realizadas */}
             <div>
-              <div className="mb-6">
-                <p className="text-xs text-slate-400 font-semibold">Pesquisas Realizadas</p>
-                <p className="text-lg font-bold text-slate-900 mt-1">{estatisticas.totalAcessos}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-400 font-semibold mb-2">Edições Pesquisadas</p>
-                {estatisticas.edicoesMaisBuscadas.length > 0 ? (
-                  <div className="space-y-1">
-                    {estatisticas.edicoesMaisBuscadas.map((ed) => (
-                      <p key={ed} className="text-xs text-slate-900">
-                        {ed}
-                      </p>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500">—</p>
-                )}
-              </div>
+              <p className="text-xs text-slate-400 font-semibold">Pesquisas Realizadas</p>
+              <p className="text-lg font-bold text-slate-900 mt-1">{estatisticas.totalAcessos}</p>
             </div>
 
-            {/* Coluna 2: Dados Exportados, UFs e IES */}
+            {/* Coluna 2: Edições Pesquisadas */}
             <div>
-              <div className="mb-6">
-                <p className="text-xs text-slate-400 font-semibold mb-2">Dados Exportados</p>
-                {estatisticas.totalExportacoes > 0 ? (
-                  <div className="space-y-1">
-                    <p className="text-xs text-slate-900">CSV (1)</p>
-                    <p className="text-xs text-slate-900">Excel (1)</p>
-                    <p className="text-xs text-slate-900">PDF (1)</p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500">—</p>
-                )}
-              </div>
+              <p className="text-xs text-slate-400 font-semibold mb-2">Edições Pesquisadas</p>
+              {estatisticas.edicoesMaisBuscadas.length > 0 ? (
+                <div className="space-y-1">
+                  {estatisticas.edicoesMaisBuscadas.map((ed) => (
+                    <p key={ed} className="text-xs text-slate-900">
+                      {ed}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">—</p>
+              )}
+            </div>
 
+            {/* Coluna 3: Dados Exportados */}
+            <div>
+              <p className="text-xs text-slate-400 font-semibold mb-2">Dados Exportados</p>
+              {estatisticas.totalExportacoes > 0 ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-900">CSV (1)</p>
+                  <p className="text-xs text-slate-900">Excel (1)</p>
+                  <p className="text-xs text-slate-900">PDF (1)</p>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">—</p>
+              )}
+            </div>
+
+            {/* Coluna 4: UFs Pesquisadas */}
             <div>
               <p className="text-xs text-slate-400 font-semibold mb-2">UFs Pesquisadas</p>
               {estatisticas.ufsMaisBuscadas.length > 0 ? (
@@ -303,23 +303,24 @@ export default function PaginaIES() {
                 <p className="text-xs text-slate-500">—</p>
               )}
             </div>
-            </div>
           </div>
 
-          {/* Linha 2: IES Pesquisadas */}
-          <div className="mt-6">
-            <p className="text-xs text-slate-400 font-semibold mb-2">IES Pesquisadas</p>
-            {estatisticas.iesMaisBuscadas.length > 0 ? (
-              <div className="space-y-1">
-                {estatisticas.iesMaisBuscadas.map((ies) => (
-                  <p key={ies} className="text-xs text-slate-900 break-words">
-                    {ies}
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">—</p>
-            )}
+          {/* Linha 2: IES Pesquisadas (alinhada com primeira coluna) */}
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            <div>
+              <p className="text-xs text-slate-400 font-semibold mb-2">IES Pesquisadas</p>
+              {estatisticas.iesMaisBuscadas.length > 0 ? (
+                <div className="space-y-1">
+                  {estatisticas.iesMaisBuscadas.map((ies) => (
+                    <p key={ies} className="text-xs text-slate-900 break-words">
+                      {ies}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">—</p>
+              )}
+            </div>
           </div>
         </div>
       )}
