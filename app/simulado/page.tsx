@@ -38,14 +38,20 @@ export default function PaginaSimulado() {
   const [indiceAtual, setIndiceAtual] = useState(0);
   const [avisos, setAvisos] = useState<string[]>([]);
   const [estatisticas, setEstatisticas] = useState<{
-    totalSimulados: number;
-    mediaAcertos: number | null;
-    edicaoMaisFeita: string | null;
-    edicaoMaisFeitaContagem: number;
-    bancaMaisFeita: string | null;
-    bancaMaisFeitaContagem: number;
-    conteudoMaisFeito: string | null;
-    conteudoMaisFeitoContagem: number;
+    simuladosOficiais: {
+      total: number;
+      media: number | null;
+      maior: number | null;
+      menor: number | null;
+    };
+    simuladosPersonalizados: {
+      total: number;
+      media: number | null;
+      maior: number | null;
+      menor: number | null;
+      edicoes: string[];
+      conteudos: string[];
+    };
   } | null>(null);
 
   useEffect(() => {
@@ -318,46 +324,109 @@ export default function PaginaSimulado() {
           </p>
         </div>
 
-        {estatisticas && estatisticas.totalSimulados > 0 && (
-          <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-3 md:grid-cols-5 sm:gap-3 sm:p-4">
-            <div>
-              <p className="text-xs text-slate-400">Simulados Realizados</p>
-              <p className="text-base sm:text-lg font-bold text-slate-900">
-                {estatisticas.totalSimulados}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Média de Acertos</p>
-              <p className="text-base sm:text-lg font-bold text-slate-900">
-                {estatisticas.mediaAcertos !== null
-                  ? `${estatisticas.mediaAcertos.toFixed(1)}%`
-                  : "—"}
-              </p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-slate-400">Edições Simuladas</p>
-              <p className="text-xs sm:text-sm font-semibold text-slate-900">
-                {estatisticas.edicaoMaisFeita
-                  ? `${estatisticas.edicaoMaisFeita} (${estatisticas.edicaoMaisFeitaContagem})`
-                  : "—"}
-              </p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-slate-400">Bancas Simuladas</p>
-              <p className="text-xs sm:text-sm font-semibold text-slate-900">
-                {estatisticas.bancaMaisFeita
-                  ? `${estatisticas.bancaMaisFeita} (${estatisticas.bancaMaisFeitaContagem})`
-                  : "—"}
-              </p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-slate-400">Conteúdos Simulados</p>
-              <p className="text-xs sm:text-sm font-semibold text-slate-900">
-                {estatisticas.conteudoMaisFeito
-                  ? `${estatisticas.conteudoMaisFeito} (${estatisticas.conteudoMaisFeitoContagem})`
-                  : "—"}
-              </p>
-            </div>
+        {estatisticas && (
+          <div className="space-y-4">
+            {/* Simulados Oficiais */}
+            {estatisticas.simuladosOficiais.total > 0 && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                <h3 className="text-sm font-semibold text-blue-900 mb-3">Simulados Oficiais Realizados</h3>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-blue-700">n</p>
+                    <p className="text-lg font-bold text-blue-900">{estatisticas.simuladosOficiais.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-700">Média</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {estatisticas.simuladosOficiais.media !== null
+                        ? `${estatisticas.simuladosOficiais.media.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-700">Maior</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {estatisticas.simuladosOficiais.maior !== null
+                        ? `${estatisticas.simuladosOficiais.maior.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-700">Menor</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {estatisticas.simuladosOficiais.menor !== null
+                        ? `${estatisticas.simuladosOficiais.menor.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Simulados Personalizados */}
+            {estatisticas.simuladosPersonalizados.total > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">Simulados Personalizados Realizados</h3>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-4">
+                  <div>
+                    <p className="text-xs text-slate-500">n</p>
+                    <p className="text-lg font-bold text-slate-900">{estatisticas.simuladosPersonalizados.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Média</p>
+                    <p className="text-lg font-bold text-slate-900">
+                      {estatisticas.simuladosPersonalizados.media !== null
+                        ? `${estatisticas.simuladosPersonalizados.media.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Maior</p>
+                    <p className="text-lg font-bold text-slate-900">
+                      {estatisticas.simuladosPersonalizados.maior !== null
+                        ? `${estatisticas.simuladosPersonalizados.maior.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Menor</p>
+                    <p className="text-lg font-bold text-slate-900">
+                      {estatisticas.simuladosPersonalizados.menor !== null
+                        ? `${estatisticas.simuladosPersonalizados.menor.toFixed(1)}%`
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Edições e Conteúdos Simulados */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 mb-2">Edições Simuladas (top 3)</p>
+                    {estatisticas.simuladosPersonalizados.edicoes.length > 0 ? (
+                      <div className="space-y-1">
+                        {estatisticas.simuladosPersonalizados.edicoes.map((ed) => (
+                          <p key={ed} className="text-xs font-semibold text-slate-900">{ed}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500">—</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 mb-2">Conteúdos Simulados (top 3)</p>
+                    {estatisticas.simuladosPersonalizados.conteudos.length > 0 ? (
+                      <div className="space-y-1">
+                        {estatisticas.simuladosPersonalizados.conteudos.map((cont) => (
+                          <p key={cont} className="text-xs font-semibold text-slate-900">{cont}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500">—</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
