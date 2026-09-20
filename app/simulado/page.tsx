@@ -124,15 +124,16 @@ export default function PaginaSimulado() {
 
   // Processa tags especiais no texto das questões
   function processarTextoQuestao(texto: string): string {
-    // Remove tags [LISTA] e [/LISTA], preservando o conteúdo
+    // Remove tags [LISTA] e [/LISTA], preservando o conteúdo e quebras de linha
     texto = texto.replace(/\[LISTA\]/g, "").replace(/\[\/LISTA\]/g, "");
 
     // Processa tags [TABELA:Item|Valor] e [/TABELA]
     texto = texto.replace(/\[TABELA:([^\]]+)\]/g, "$1");
     texto = texto.replace(/\[\/TABELA\]/g, "");
 
-    // Remove espaços múltiplos
-    texto = texto.replace(/\s+/g, " ");
+    // NÃO remove quebras de linha - elas definem a estrutura das listas
+    // Apenas normaliza espaços múltiplos (exceto quebras de linha)
+    texto = texto.replace(/ +/g, " ");
 
     return texto.trim();
   }
